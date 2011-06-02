@@ -101,6 +101,7 @@ print "Configuration:"
 print "--------------"
 
 print "templateFilePath: " + templateFilePath + "\n"
+print "templateFooterFilePath: " + templateFooterFilePath + "\n"
 print "targetDirPath: " + targetDirPath + "\n"
 print "extensions: "
 for ext in extensions_list:
