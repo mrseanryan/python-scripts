@@ -1,6 +1,1 @@
-/*============= BEGIN ORIGINAL SQL FILE NAME:  \mySql1.sql =============*/
-
-/*============= BEGIN ORIGINAL SQL FILE NAME:  \mySql1.sql =============*/
-
 SELECT * FROM dbo.BigTable
-/*============= END ORIGINAL SQL FILE NAME:  \mySql1.sql =============*/
