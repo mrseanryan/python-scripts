@@ -152,7 +152,7 @@ def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 def IsFileExtensionOk(filename):
     global extensions_list
     for ext in extensions_list:
-        if (filename.endswith("." + ext)):
+        if (filename.lower().endswith("." + ext.lower())):
             return True
     return False
 
