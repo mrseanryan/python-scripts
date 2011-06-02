@@ -1,0 +1,4 @@
+/*============= BEGIN ORIGINAL SQL FILE NAME:  \mySql2.sql =============*/
+
+SELECT * FROM dbo.BigTable2
+/*============= END ORIGINAL SQL FILE NAME:  \mySql2.sql =============*/

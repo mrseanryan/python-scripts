@@ -7,7 +7,7 @@
  
  The file header is specified from a template file, in the style of Apache Velocity, where a variable looks like ${this}.
 
-Usage: add_file_headers.py <target directory> <template file> [options]
+Usage: add_file_headers.py <target directory> <template file> <template footer file> [options]
 
 The options are:
 [-e semi-colon separated list of file extensions]
@@ -15,7 +15,7 @@ The options are:
 [-w show Warnings only]
 [-y say Yes to all prompts (no interaction)]
 
-Example: add_file_headers.py e:\\sean\\SourceRoot\\root\\20100920\\BWAC\\ sql_header.txt -e dll;sql
+Example: add_file_headers.py test_data\\ sql_header.txt test_data\\ sql_footer.txt -e cpp;sql
 """
 ###############################################################
 
@@ -70,7 +70,7 @@ def usage():
 
 ###############################################################
 #optparse - parse the args
-parser = OptionParser(usage='%prog <target directory> <template file> [options]')
+parser = OptionParser(usage='%prog <target directory> <template header file> <template footer file> [options]')
 parser.add_option('-e', '--extensions', dest='extensions', default='sql;sql',
                    help='only files that match these extensions will be processed (default: sql;sql)')
 parser.add_option('-w', '--warnings', dest='warnings', action='store_const',
@@ -81,13 +81,14 @@ parser.add_option('-y', '--yes', dest='yes_all', action='store_const',
                    help='automatically say Yes to allow prompts (default: prompt user)')
 
 (options, args) = parser.parse_args()
-if(len(args) != 2):
+if(len(args) != 3):
     usage()
     sys.exit(2)
 logVerbosity = options.warnings
 extensions = options.extensions
 targetDirPath = args[0]
 templateFilePath = args[1]
+templateFooterFilePath = args[2]
 yesAllPrompts = options.yes_all
 
 ###############################################################
@@ -193,7 +194,7 @@ printOut ("")
 # make sorted list of filenames,
 # just so the user can see the progress:
 sortedFileNames = list()
-for fileName in sortedFileNames.iterkeys():
+for fileName in targetFilePaths.iterkeys():
     sortedFileNames.append(fileName)
 sortedFileNames.sort()
 
@@ -207,43 +208,45 @@ def getShortenedFilePath(srcFilePath):
 		iStart = 0
 	while(iStart < len(pathParts)):
 		shortenedPath = os.sep + pathParts[iStart]
-	shortenedPath
+		iStart = iStart + 1
+	return shortenedPath
 
 ###############################################################
 #get the template variables in style of Apache Velocity, like ${this}
-def getHeader(srcFilePath, templateFilePath):
+def getVariables(srcFilePath, templateFilePath):
 	dictVarToVal = dict()
-	dictVarToVal["FilePath"] = getShortenedFilePath(srcFilePath)
-	dictVarToVal
+	dictVarToVal["${FilePath}"] = getShortenedFilePath(srcFilePath)
+	return dictVarToVal
 
 ###############################################################
 #replace any template variables in the given line
-def replaceTemplateVariables(line, dictVarToVal)
+def replaceTemplateVariables(line, dictVarToVal):
 	for var in dictVarToVal.iterkeys():
 		line = line.replace(var, dictVarToVal[var])
-	line
+	return line
 
 ###############################################################
 #generate the header for given file path, from the given template.
-def getHeader(srcFilePath, templateFilePath):
+def getTemplatedText(srcFilePath, templateFilePath):
+	import pdb; pdb.set_trace()
 	dictVarToVal = getVariables(srcFilePath, templateFilePath)
 	header = ""
 	srcFile = open(templateFilePath, "r")
 	for line in srcFile:
 		line = replaceTemplateVariables(line, dictVarToVal)
 		header = header + line + "\n"
-	header
+	return header
 
 ###############################################################
 #process a file, adding a header:
-def processFile(srcFilePath, templateFilePath)
+def processFile(srcFilePath, templateFilePath):
 	#backup the file to .orig:
 	backupFilePath = srcFilePath + ".orig"
 	if exists(backupFilePath):
 		raise Exception("!!! Error: Original file already exists! - " + backupFilePath)
 	shutil.copy(srcFilePath, backupFilePath)
 	#read the header:
-	header = getHeader(srcFilePath, templateFilePath)
+	header = getTemplatedText(srcFilePath, templateFilePath)
 	#write the header to the file:
 	targetFile = open(srcFilePath, "w+")
 	for line in header:
@@ -252,18 +255,24 @@ def processFile(srcFilePath, templateFilePath)
 	origFile = open(backupFilePath, "r")
 	for line in origFile:
 		targetFile.write(line)
+	#read the footer:
+	footer = getTemplatedText(srcFilePath, templateFooterFilePath)
+	#write the footer to the file:
+	for line in footer:
+		targetFile.write(line)
 	targetFile.close()
+	
 ###############################################################
 # Loop through the files - for each one, add a header using the template
         
 numFilesProcessed = 0
 for fileName in sortedFileNames:
-        srcFilePathSet = sortedFileNames[fileName]
-            for srcFilePath in srcFilePathSet:
-                printOut ("\nProcessing file " + srcFilePath)
-                processFile(srcFilePath, templateFilePath)
-                numFilesProcessed = numFilesProcessed + 1
-        printOut ( "\r" + str((numFilesProcessed * 100) / numTargetFiles) + "%", LOG_WARNINGS, False ) #show some progress, even if low verbosity
+	srcFilePathSet = targetFilePaths[fileName]
+	for srcFilePath in srcFilePathSet:
+		printOut ("\nProcessing file " + srcFilePath)
+		processFile(srcFilePath, templateFilePath)
+		numFilesProcessed = numFilesProcessed + 1
+	printOut ( "\r" + str((numFilesProcessed * 100) / numTargetFiles) + "%", LOG_WARNINGS, False ) #show some progress, even if low verbosity
 
 ###############################################################
 #print summary of results        
