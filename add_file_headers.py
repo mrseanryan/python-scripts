@@ -1,7 +1,7 @@
 """
  add_file_headers.py
  Author: Sean Ryan
- Version: 1.0
+ Version: 1.1
 
  Script to add a simple file header to all the given files.
  
@@ -201,13 +201,14 @@ sortedFileNames.sort()
 ###############################################################
 #get a shorter version of the file path, just to show what are immediate parents
 def getShortenedFilePath(srcFilePath):
+	#import pdb; pdb.set_trace()
 	pathParts = srcFilePath.split( os.sep )
 	shortenedPath = ""
 	iStart = len(pathParts) - 3
 	if iStart < 0:
 		iStart = 0
 	while(iStart < len(pathParts)):
-		shortenedPath = os.sep + pathParts[iStart]
+		shortenedPath += os.sep + pathParts[iStart]
 		iStart = iStart + 1
 	return shortenedPath
 
@@ -228,7 +229,7 @@ def replaceTemplateVariables(line, dictVarToVal):
 ###############################################################
 #generate the header for given file path, from the given template.
 def getTemplatedText(srcFilePath, templateFilePath):
-	import pdb; pdb.set_trace()
+	#import pdb; pdb.set_trace()
 	dictVarToVal = getVariables(srcFilePath, templateFilePath)
 	header = ""
 	srcFile = open(templateFilePath, "r")
