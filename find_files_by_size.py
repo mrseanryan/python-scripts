@@ -1,7 +1,7 @@
 """
  find_files_by_size.py
  Author: Sean Ryan
- Version: 1.0
+ Version: 1.1
 
  Script to recursively find files with matching size.
 
@@ -176,7 +176,15 @@ def search_files_by_size_and_ext(dir):
 	iNumFilesFoundLocal = 0
 	basedir = dir
 	subdirlist = []
-	for filename in os.listdir(dir):
+	
+	filesInDir = []
+	try:
+		filesInDir = os.listdir(dir)
+	except WindowsError:
+		printOut("Error occurred accessing directory " + dir);
+		return 0
+	
+	for filename in filesInDir:
 		filePath = os.path.join(basedir,filename)
 		if os.path.isfile(filePath):
 			if IsFileExtensionOk(filename) and IsFileSizeOk(filePath):
@@ -185,7 +193,10 @@ def search_files_by_size_and_ext(dir):
 		else:
 			subdirlist.append(filePath)
 	for subdir in subdirlist:
-		iNumFilesFoundLocal += search_files_by_size_and_ext(subdir)
+		try:
+			iNumFilesFoundLocal += search_files_by_size_and_ext(subdir)
+		except WindowsError:
+			printOut("Error occurred accessing directory " + subdir);
 	return iNumFilesFoundLocal
 
 ###############################################################
