@@ -5,6 +5,8 @@
 
  Script to recursively find files with matching size.
 
+Dependencies: Python 2.7 (3)
+ 
 Usage: find_files_by_size.py <source directory> <size in bytes> [options]
 
 The options are:
@@ -30,7 +32,7 @@ from os.path import exists, join
 #pathsep ; on windows  , on unix
 from os import pathsep
 
-from string import split
+#from string import split
 
 ###############################################################
 # Define some defaults:
@@ -49,7 +51,7 @@ extensions_list = set()
 def ask_ok(prompt, retries=3, complaint='Yes or no, please!'):
 	global yesAllPrompts
 	if yesAllPrompts:
-		print prompt + " (Y)"
+		print (prompt + " (Y)")
 		return True
 	while True:
 		ok = raw_input(prompt)
@@ -60,12 +62,12 @@ def ask_ok(prompt, retries=3, complaint='Yes or no, please!'):
 		retries = retries - 1
 		if retries < 0:
 			raise IOError('refusenik user')
-		print complaint		
+		print (complaint)
 
 ###############################################################
 #usage() - prints out the usage text, from the top of this file :-)
 def usage():
-	print __doc__
+	print (__doc__)
 
 dateTimeFormat = '%d %m %Y %H:%M'
 datetime.datetime.strptime('01 12 2006 12:32', dateTimeFormat)
@@ -98,39 +100,39 @@ extensions_list = extensions.split(';')
 
 ###############################################################
 #print out summary of the configuration, and prompt user to continue:
-print "Configuration:"
-print "--------------"
+print ("Configuration:")
+print ("--------------")
 
-print "sourceDirPath: " + sourceDirPath + "\n"
-print "sizeInBytes: " + str(sizeInBytes) + "\n"
-print "extensions: "
+print ("sourceDirPath: " + sourceDirPath + "\n")
+print ("sizeInBytes: " + str(sizeInBytes) + "\n")
+print ("extensions: ")
 for ext in extensions_list:
-	print ext + " "
+	print (ext + " ")
 
-print ""
+print ("")
 
 if logVerbosity == LOG_WARNINGS:
-	print "Output will show warnings only\n"
+	print ("Output will show warnings only\n")
 elif logVerbosity == LOG_VERBOSE:
-	print "Output is verbose\n"
+	print ("Output is verbose\n")
 else:
-	print "Invalid verbosity level: " + logVerbosity
+	print ("Invalid verbosity level: " + logVerbosity)
 	sys.exit(1)
 
-print "We will recursively search for all matching files, that have a filesize exactly equal to " + str(sizeInBytes) + " bytes."
+print ("We will recursively search for all matching files, that have a filesize exactly equal to " + str(sizeInBytes) + " bytes.")
 
-print ""
+print ("")
 
 if ask_ok("Do you wish to continue ? (Y/N)"):
 	#do nothing
-	print "ok"
+	print ("ok")
 else:
-	print "Exiting"
+	print ("Exiting")
 	sys.exit()
 	
-print ""
+print ("")
 
-print "Searching for files ...\n"
+print ("Searching for files ...\n")
 
 numWarnings = 0
 
@@ -178,7 +180,7 @@ def search_files_by_size_and_ext(dir):
 		filePath = os.path.join(basedir,filename)
 		if os.path.isfile(filePath):
 			if IsFileExtensionOk(filename) and IsFileSizeOk(filePath):
-				printOut ("File found: " + filename)
+				printOut ("File found: " + filePath)
 				iNumFilesFoundLocal = iNumFilesFoundLocal + 1
 		else:
 			subdirlist.append(filePath)
@@ -194,6 +196,6 @@ iNumFilesFound = search_files_by_size_and_ext(sourceDirPath)
 
 ###############################################################
 #print summary of results		
-print ""
+print ("")
 print ("Found " + str(iNumFilesFound) + " matching files.")
-print str(numWarnings) + " warnings"
+print (str(numWarnings) + " warnings")
