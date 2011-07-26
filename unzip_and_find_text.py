@@ -254,15 +254,15 @@ def writeToResultFile(archivePath, regEx, foundInFiles):
 
 ###############################################################
 #process the archives:
-def processArchives(archiveFilePaths, regEx):
+def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 	global numWarnings
 	for fileName in archiveFilePaths:
 		srcFilePathSet = archiveFilePaths[fileName]
 		for archivePath in srcFilePathSet:
-			import pdb
-			pdb.set_trace()
+			archiveHierarchicalName = archiveParentName + "_" + getFileName(archivePath)
+			appendToResultFile("*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*")
 			appendToResultFile("Processing archive or uncompressed log: " + archivePath)
-			extractedPath = tempDir + "\\unzipped_log_archive\\" + getFileName(archivePath) + "_"
+			extractedPath = tempDir + "\\unzipped_log_archive\\" + archiveHierarchicalName
 			unzipArchive(archivePath, extractedPath)
 			#get list of the extracted files:
 			targetFilePaths = dict()
@@ -273,10 +273,11 @@ def processArchives(archiveFilePaths, regEx):
 			for archiveFileName in targetFilePaths:
 				if(IsFileAnArchive(archiveFileName)):
 					embeddedArchiveFilePaths[archiveFileName] = targetFilePaths[archiveFileName]
-					printOut("Found an embedded archive - NOT processing it", LOG_WARNINGS)
-					numWarnings = numWarnings + 1
+					printOut("Found an embedded archive")
 			#search the files:
 			searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath)
+			#process the embedded archives:
+			processArchives(embeddedArchiveFilePaths, regEx, archiveHierarchicalName)
 			clearOutDir(extractedPath)
 
 ###############################################################
