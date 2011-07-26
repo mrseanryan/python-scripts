@@ -26,15 +26,17 @@ import re
 import shutil
 from string import split
 import subprocess
+import stat
 import sys
 import tempfile
 import time
+import traceback
 
 ###############################################################
 # Define some defaults:
 
 #LOG_WARNINGS_ONLY - this means, only output if the verbosity is LOG_WARNINGS
-LOG_ERRORS, LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(3)
+LOG_ERRORS, LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(4)
 logVerbosity = LOG_VERBOSE
 
 searchDirPath = ""
@@ -201,9 +203,17 @@ def search_files(dir, result_dict):
 ###############################################################
 def clearOutDir(dirPath):
 	if os.access(dirPath, os.R_OK):
-		shutil.rmtree(dirPath, False) #False = do NOT ignore errors
+		shutil.rmtree(dirPath, False, onerror=remove_readonly) #False = do NOT ignore errors
 	os.mkdir(dirPath)
 
+def remove_readonly(fn, path, excinfo):
+    if fn is os.rmdir:
+        os.chmod(path, stat.S_IWRITE)
+        os.rmdir(path)
+    elif fn is os.remove:
+        os.chmod(path, stat.S_IWRITE)
+        os.remove(path)
+	
 def copyFile(srcPath, destPath):
 	shutil.copy(srcPath, destPath)
 
@@ -291,8 +301,15 @@ def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 				#process the embedded archives:
 				processArchives(embeddedArchiveFilePaths, regEx, archiveHierarchicalName)
 				clearOutDir(extractedPath)
+			except Exception as ex:
+				traceback.print_exc(file=sys.stdout)
+				printOut("Error occurred with archive " + archivePath + " - " + str(ex), LOG_ERRORS)
+				print type(ex)     # the exception instance
+				print ex.args      # arguments stored in .args
+				iNumErrors = iNumErrors + 1
 			except:
-				printOut("Error occurred with archive " + archivePath + " - " + sys.exc_info()[0], LOG_ERRORS)
+				traceback.print_exc(file=sys.stdout)
+				printOut("Error occurred with archive " + archivePath + " - " + str(sys.exc_info()[0]), LOG_ERRORS)
 				iNumErrors = iNumErrors + 1
 
 ###############################################################
