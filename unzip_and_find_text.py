@@ -1,18 +1,18 @@
 """
  unzip_and_find_text.py
  Author: Sean Ryan
- Version: 1.0
+ Version: 1.1
 
  Script to unzip an archive, and find text inside it.
  
-Usage: unzip_and_find_text.py <archive file path> <regular expression> [options]
+Usage: unzip_and_find_text.py <search dir path> <regular expression> [options]
 
 The options are:
 [-h help]
 [-w show Warnings only]
 [-y say Yes to all prompts (no interaction)]
 
-Example: unzip_and_find_text.py c:\myZip.zip ".*sheep.*" -w -y
+Example: unzip_and_find_text.py c:\myZipFiles "sheep" -w -y
 """
 ###############################################################
 import datetime
@@ -37,12 +37,12 @@ import time
 LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(3)
 logVerbosity = LOG_VERBOSE
 
-archivePath = ""
+searchDirPath = ""
 regEx = ""
 yesAllPrompts = True #to allow super-script to call this script
 
-extensions_to_warn = ['rar', 'zip']
-extensions = [ 'log']
+extensions_of_archives  = ['rar', 'zip']
+extensions = [ 'log', 'rar', 'zip']
 tempDir = tempfile.gettempdir()
 resultFilePath = tempDir + "\\log_file_search_result.txt"
 
@@ -75,7 +75,7 @@ def usage():
 
 ###############################################################
 #optparse - parse the args
-parser = OptionParser(usage='%prog <archive file path> <regular expression> [options]')
+parser = OptionParser(usage='%prog <search dir path> <regular expression> [options]')
 parser.add_option('-w', '--warnings', dest='warnings', action='store_const',
 	 	 	 	const=LOG_WARNINGS, default=LOG_VERBOSE,
 	 	 	 	help='show only warnings (default: show all output)')
@@ -88,7 +88,7 @@ if(len(args) != 2):
 	usage()
 	sys.exit(2)
 logVerbosity = options.warnings
-archivePath = args[0]
+searchDirPath = args[0]
 regEx = args[1]
 yesAllPrompts = options.yes_all
 
@@ -97,7 +97,7 @@ yesAllPrompts = options.yes_all
 print "Configuration:"
 print "--------------"
 
-print "archivePath: " + archivePath + "\n"
+print "searchDirPath: " + searchDirPath + "\n"
 print "regEx: " + regEx + "\n"
 
 print ""
@@ -110,7 +110,7 @@ else:
 	print "Invalid verbosity level: " + logVerbosity
 	sys.exit(1)
 
-print "We will search the archive " + archivePath + " for the given regular expression."
+print "We will search the directory " + searchDirPath + " for archives and uncompresssed log files, that contain the given regular expression."
 
 print ""
 
@@ -123,9 +123,12 @@ else:
 	
 print ""
 
-numWarnings = 0
-
 ###############################################################
+#counters
+
+numWarnings = 0
+iNumArchivesFoundWithText = 0
+iNumArchivesProcessed = 0
 
 ###############################################################
 #printOut()
@@ -148,9 +151,9 @@ def getFileExtension(filename):
 	else:
 		return ""
 
-def IsFileExtensionNotExpected(filename):
-	global extensions_to_warn
-	if(getFileExtension(filename) in extensions_to_warn):
+def IsFileAnArchive(filename):
+	global extensions_of_archives
+	if(getFileExtension(filename) in extensions_of_archives):
 		return True
 	else:
 		return False
@@ -163,11 +166,9 @@ def IsFileExtensionOk(filename):
 	return False
 
 ###############################################################
-#search for files that were extracted from the archive:
-
-###############################################################
 #search_files - recursively search the given directory, and populate the map with files that match our list of extensions
 def search_files(dir, result_dict):
+	global numWarnings
 	basedir = dir
 	#print "Files in ", dir, ": "
 	subdirlist = []
@@ -181,9 +182,6 @@ def search_files(dir, result_dict):
 				else:
 					result_dict[filename] = setOfPaths
 				setOfPaths.add( os.path.join(basedir, filename) )
-			if IsFileExtensionNotExpected(filename):
-				printOut("Warning: unexpected file found: " + filename, LOG_WARNINGS)
-				numWarnings = numWarnings + 1
 		else:
 			subdirlist.append(os.path.join(basedir, filename))
 	for subdir in subdirlist:
@@ -255,10 +253,38 @@ def writeToResultFile(archivePath, regEx, foundInFiles):
 	appendToResultFile("")
 
 ###############################################################
+#process the archives:
+def processArchives(archiveFilePaths, regEx):
+	global numWarnings
+	for fileName in archiveFilePaths:
+		srcFilePathSet = archiveFilePaths[fileName]
+		for archivePath in srcFilePathSet:
+			import pdb
+			pdb.set_trace()
+			appendToResultFile("Processing archive or uncompressed log: " + archivePath)
+			extractedPath = tempDir + "\\unzipped_log_archive\\" + getFileName(archivePath) + "_"
+			unzipArchive(archivePath, extractedPath)
+			#get list of the extracted files:
+			targetFilePaths = dict()
+			search_files(extractedPath, targetFilePaths)
+			#check for embedded archives:
+			#TODO - process these, recursively
+			embeddedArchiveFilePaths = dict()
+			for archiveFileName in targetFilePaths:
+				if(IsFileAnArchive(archiveFileName)):
+					embeddedArchiveFilePaths[archiveFileName] = targetFilePaths[archiveFileName]
+					printOut("Found an embedded archive - NOT processing it", LOG_WARNINGS)
+					numWarnings = numWarnings + 1
+			#search the files:
+			searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath)
+			clearOutDir(extractedPath)
+
+###############################################################
 #search the files:
 #TODO - support RegEx not just text search
 def searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath):
 	printOut("\nSearching archive: " + archivePath)
+	global iNumArchivesFoundWithText, iNumArchivesProcessed
 	foundInFiles = []
 	for fileName in targetFilePaths:
 		srcFilePathSet = targetFilePaths[fileName]
@@ -270,6 +296,8 @@ def searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath):
 				foundInFiles.append(extractedRelativePath)
 	if(len(foundInFiles) > 0):
 		writeToResultFile(archivePath, regEx, foundInFiles)
+		iNumArchivesFoundWithText = iNumArchivesFoundWithText + 1
+	iNumArchivesProcessed = iNumArchivesProcessed + 1
 
 ###############################################################
 #find the given text, in the give txt file.
@@ -287,20 +315,21 @@ def findTextInFile(textSrcFilePath, textToFind):
 ###############################################################
 #main process:
 text_file = open(resultFilePath, 'a')
-appendToResultFile("Searching archive or uncompressed log: " + archivePath)
 
-extractedPath = tempDir + "\\unzipped_log_archive"
-unzipArchive(archivePath, extractedPath)
-#get list of the extracted files:
-targetFilePaths = dict()
-search_files(extractedPath, targetFilePaths)
-#search the files:
-searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath)
+#find archives + uncompressed log files:
+
+printOut("Searching for archive files and uncompressed logs ...")
+archiveFilePaths = dict()
+search_files(searchDirPath, archiveFilePaths)
+
+#process the archives:
+processArchives(archiveFilePaths, regEx)
+
 text_file.close()
-
-clearOutDir(extractedPath)
 
 ###############################################################
 #print summary of results		
 print ""
+print "Text was found in " + str(iNumArchivesFoundWithText) + " files"
+print str(iNumArchivesProcessed) + " files were processed"
 print str(numWarnings) + " warnings"
