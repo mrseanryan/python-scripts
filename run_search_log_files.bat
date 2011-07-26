@@ -5,8 +5,6 @@ REM rar zip log
 
 SETLOCAL
 
-python unzip_and_find_text.py xxxxx 
-
 REM for clearer output, we search for 1 text item at a time
 
 REM TEXT 1 ========================================
