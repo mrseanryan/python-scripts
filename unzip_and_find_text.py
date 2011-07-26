@@ -42,6 +42,7 @@ regEx = ""
 yesAllPrompts = True #to allow super-script to call this script
 
 extensions_of_archives  = ['rar', 'zip']
+extensions_of_text_files = ['txt', 'log']
 extensions = [ 'log', 'rar', 'zip']
 tempDir = tempfile.gettempdir()
 resultFilePath = tempDir + "\\log_file_search_result.txt"
@@ -135,6 +136,8 @@ iNumArchivesProcessed = 0
 #this function prints out, according to user's options for verbosity
 def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 	global logVerbosity
+	if verb == LOG_WARNINGS:
+		txt = "!!! Warning - " + txt
 	if(bNewLine):
 		txt = txt + "\n"
 	if verb == LOG_WARNINGS_ONLY:
@@ -154,6 +157,13 @@ def getFileExtension(filename):
 def IsFileAnArchive(filename):
 	global extensions_of_archives
 	if(getFileExtension(filename) in extensions_of_archives):
+		return True
+	else:
+		return False
+
+def IsFileATextFile(filename):
+	global extensions_of_text_files
+	if(getFileExtension(filename) in extensions_of_text_files):
 		return True
 	else:
 		return False
@@ -285,16 +295,20 @@ def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 #TODO - support RegEx not just text search
 def searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath):
 	printOut("\nSearching archive: " + archivePath)
-	global iNumArchivesFoundWithText, iNumArchivesProcessed
+	global iNumArchivesFoundWithText, iNumArchivesProcessed, numWarnings
 	foundInFiles = []
 	for fileName in targetFilePaths:
-		srcFilePathSet = targetFilePaths[fileName]
-		for srcFilePath in srcFilePathSet:
-			printOut ("\nSearching file " + srcFilePath)
-			iNumFoundInFile = findTextInFile(srcFilePath, regEx)
-			if(iNumFoundInFile > 0):
-				extractedRelativePath = srcFilePath[len(extractedPath):]
-				foundInFiles.append(extractedRelativePath)
+		if(IsFileATextFile(fileName)):
+			srcFilePathSet = targetFilePaths[fileName]
+			for srcFilePath in srcFilePathSet:
+				printOut ("\nSearching file " + srcFilePath)
+				iNumFoundInFile = findTextInFile(srcFilePath, regEx)
+				if(iNumFoundInFile > 0):
+					extractedRelativePath = srcFilePath[len(extractedPath):]
+					foundInFiles.append(extractedRelativePath)
+		else:
+			printOut("Not searching text in file " + fileName, LOG_WARNINGS)
+			numWarnings = numWarnings + 1
 	if(len(foundInFiles) > 0):
 		writeToResultFile(archivePath, regEx, foundInFiles)
 		iNumArchivesFoundWithText = iNumArchivesFoundWithText + 1
@@ -326,11 +340,14 @@ search_files(searchDirPath, archiveFilePaths)
 #process the archives:
 processArchives(archiveFilePaths, regEx)
 
-text_file.close()
-
 ###############################################################
 #print summary of results		
-print ""
-print "Text was found in " + str(iNumArchivesFoundWithText) + " files"
-print str(iNumArchivesProcessed) + " files were processed"
-print str(numWarnings) + " warnings"
+summary = ""
+summary += "\n" + ""
+summary += "\n" + "Text was found in " + str(iNumArchivesFoundWithText) + " files"
+summary += "\n" + str(iNumArchivesProcessed) + " files were processed"
+summary += "\n" + str(numWarnings) + " warnings"
+
+appendToResultFile(summary)
+
+text_file.close()
