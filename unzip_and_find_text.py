@@ -34,7 +34,7 @@ import time
 # Define some defaults:
 
 #LOG_WARNINGS_ONLY - this means, only output if the verbosity is LOG_WARNINGS
-LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(3)
+LOG_ERRORS, LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(3)
 logVerbosity = LOG_VERBOSE
 
 searchDirPath = ""
@@ -128,6 +128,7 @@ print ""
 #counters
 
 numWarnings = 0
+iNumErrors = 0
 iNumArchivesFoundWithText = 0
 iNumArchivesProcessed = 0
 
@@ -141,7 +142,7 @@ def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 	if(bNewLine):
 		txt = txt + "\n"
 	if verb == LOG_WARNINGS_ONLY:
-		if logVerbosity == LOG_WARNINGS: #special case :-(
+		if logVerbosity <= LOG_WARNINGS:
 			sys.stdout.write(txt)
 	elif(logVerbosity >= verb):
 		sys.stdout.write(txt)
@@ -265,30 +266,34 @@ def writeToResultFile(archivePath, regEx, foundInFiles):
 ###############################################################
 #process the archives:
 def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
-	global numWarnings
+	global numWarnings, iNumErrors
 	for fileName in archiveFilePaths:
 		srcFilePathSet = archiveFilePaths[fileName]
 		for archivePath in srcFilePathSet:
-			archiveHierarchicalName = archiveParentName + "_" + getFileName(archivePath)
-			appendToResultFile("*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*")
-			appendToResultFile("Processing archive or uncompressed log: " + archivePath)
-			extractedPath = tempDir + "\\unzipped_log_archive\\" + archiveHierarchicalName
-			unzipArchive(archivePath, extractedPath)
-			#get list of the extracted files:
-			targetFilePaths = dict()
-			search_files(extractedPath, targetFilePaths)
-			#check for embedded archives:
-			#TODO - process these, recursively
-			embeddedArchiveFilePaths = dict()
-			for archiveFileName in targetFilePaths:
-				if(IsFileAnArchive(archiveFileName)):
-					embeddedArchiveFilePaths[archiveFileName] = targetFilePaths[archiveFileName]
-					printOut("Found an embedded archive " + archiveFileName)
-			#search the files:
-			searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath)
-			#process the embedded archives:
-			processArchives(embeddedArchiveFilePaths, regEx, archiveHierarchicalName)
-			clearOutDir(extractedPath)
+			try: #to allow further archives to be processed
+				archiveHierarchicalName = archiveParentName + "_" + getFileName(archivePath)
+				appendToResultFile("*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*")
+				appendToResultFile("Processing archive or uncompressed log: " + archivePath)
+				extractedPath = tempDir + "\\unzipped_log_archive\\" + archiveHierarchicalName
+				unzipArchive(archivePath, extractedPath)
+				#get list of the extracted files:
+				targetFilePaths = dict()
+				search_files(extractedPath, targetFilePaths)
+				#check for embedded archives:
+				#TODO - process these, recursively
+				embeddedArchiveFilePaths = dict()
+				for archiveFileName in targetFilePaths:
+					if(IsFileAnArchive(archiveFileName)):
+						embeddedArchiveFilePaths[archiveFileName] = targetFilePaths[archiveFileName]
+						printOut("Found an embedded archive " + archiveFileName)
+				#search the files:
+				searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath)
+				#process the embedded archives:
+				processArchives(embeddedArchiveFilePaths, regEx, archiveHierarchicalName)
+				clearOutDir(extractedPath)
+			except:
+				printOut("Error occurred with archive " + archivePath + " - " + sys.exc_info()[0], LOG_ERRORS)
+				iNumErrors = iNumErrors + 1
 
 ###############################################################
 #search the files:
@@ -347,7 +352,11 @@ summary += "\n" + ""
 summary += "\n" + "Text was found in " + str(iNumArchivesFoundWithText) + " files"
 summary += "\n" + str(iNumArchivesProcessed) + " files were processed"
 summary += "\n" + str(numWarnings) + " warnings occurred"
+summary += "\n" + str(iNumErrors) + " errors occurred"
 
 appendToResultFile(summary)
 
 text_file.close()
+
+if(iNumErrors > 0):
+	raise Exception("Errors occurred!")
