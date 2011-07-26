@@ -283,7 +283,7 @@ def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 			for archiveFileName in targetFilePaths:
 				if(IsFileAnArchive(archiveFileName)):
 					embeddedArchiveFilePaths[archiveFileName] = targetFilePaths[archiveFileName]
-					printOut("Found an embedded archive")
+					printOut("Found an embedded archive " + archiveFileName)
 			#search the files:
 			searchFilesForText(archivePath, targetFilePaths, regEx, extractedPath)
 			#process the embedded archives:
@@ -346,7 +346,7 @@ summary = ""
 summary += "\n" + ""
 summary += "\n" + "Text was found in " + str(iNumArchivesFoundWithText) + " files"
 summary += "\n" + str(iNumArchivesProcessed) + " files were processed"
-summary += "\n" + str(numWarnings) + " warnings"
+summary += "\n" + str(numWarnings) + " warnings occurred"
 
 appendToResultFile(summary)
 
