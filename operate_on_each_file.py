@@ -252,13 +252,17 @@ def copyFile(srcFilePath, scriptInputFilePath):
 	shutil.copy(srcFilePath, scriptInputFilePath)
 
 def runOperation(targetScriptPath):
+	targetScriptPath = os.path.abspath(targetScriptPath)
 	scriptWorkingDir = os.path.dirname(targetScriptPath)
 	args = ""
 	toExec = targetScriptPath + " " + args
 	printOut("Running script " + toExec)
 	process = subprocess.Popen(toExec, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd = scriptWorkingDir)
 	(stdout_cap, stderr_cap) = process.communicate()
-
+	printOut(">>>" + str(stdout_cap))
+	if(len(stderr_cap) > 0):
+		raise Exception(str(stderr_cap))
+	#TODO - catch error return code !
 
 def createOutputFilePath(fileName, outputDirPath):
 	return outputDirPath + "\\" + "processed__" + fileName
@@ -287,6 +291,3 @@ for fileName in sortedSourceFileNames:
 print ""
 print str(numFilesProcessed) + " files were processed"
 print str(numWarnings) + " warnings"
-
-print "Press ENTER to finish"
-inp = sys.stdin.readline()
