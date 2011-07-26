@@ -13,19 +13,19 @@ SET _TEXT_TO_SEARCH="CDatabase::GetpRst"
 
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\Customer Logs"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
-IF ERRORLEVEL NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\QA\BWAC_3_1_0_Large_Logfiles"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
-IF ERRORLEVEL NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\QA\BWAC_3_1_1_Large_Logfiles"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
-IF ERRORLEVEL NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\QA\BWAC_3_1_2_Large_Logfiles"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
-IF ERRORLEVEL NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 REM TEXT 2 ========================================
 
@@ -33,26 +33,27 @@ SET _TEXT_TO_SEARCH=“Error: COM exception”
 
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\Customer Logs"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
-IF ERRORLEVEL NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\QA\BWAC_3_1_0_Large_Logfiles"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
-IF ERRORLEVEL NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\QA\BWAC_3_1_1_Large_Logfiles"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
-IF ERRORLEVEL NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\QA\BWAC_3_1_2_Large_Logfiles"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
-IF ERRORLEVEL NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 REM Skip over the error handling and exit
 GOTO Done
 
 REM Report the compiler error; then exit
 :SomeErrorOccurred
-ECHO Error occurred!
+REM raise an error:
+Error occurred!
 
 :Done
 ECHO Finished.
