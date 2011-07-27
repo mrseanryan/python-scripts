@@ -379,9 +379,9 @@ text_file = open(resultFilePath, 'a')
 #make the unzipped location be named after the result file, to allow for concurrent instances
 unzippedDir = tempDir + "\\unzipped_log_archive__" + getFileName(resultFilePath) + "\\"
 ensureDirExists(unzippedDir)
+clearOutDir(unzippedDir)
 
 #find archives + uncompressed log files:
-
 printOut("Searching for archive files and uncompressed logs ...")
 archiveFilePaths = dict()
 search_files(searchDirPath, archiveFilePaths)
