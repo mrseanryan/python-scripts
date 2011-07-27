@@ -142,6 +142,12 @@ iNumArchivesProcessed = 0 #includes embedded archives
 iNumTopLevelFilesProcessed = 0 #excludes embedded archives
 
 ###############################################################
+def ensureDirExists(dirPath):
+	#create the directory if it does not exist:
+	if not os.path.exists(dirPath):
+		os.mkdir(dirPath)
+
+###############################################################
 #printOut()
 #this function prints out, according to user's options for verbosity
 def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
@@ -288,7 +294,7 @@ def writeToResultFile(archivePath, regEx, foundInFiles):
 ###############################################################
 #process the archives:
 def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
-	global numWarnings, iNumErrors, iNumTopLevelFilesProcessed
+	global numWarnings, iNumErrors, iNumTopLevelFilesProcessed, unzippedDir
 	for fileName in archiveFilePaths:
 		srcFilePathSet = archiveFilePaths[fileName]
 		for archivePath in srcFilePathSet:
@@ -296,7 +302,7 @@ def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 				archiveHierarchicalName = archiveParentName + "_" + getFileName(archivePath)
 				appendToResultFile("*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*")
 				appendToResultFile("Processing archive or uncompressed log: " + archivePath)
-				extractedPath = tempDir + "\\unzipped_log_archive\\" + archiveHierarchicalName
+				extractedPath = unzippedDir + archiveHierarchicalName
 				unzipArchive(archivePath, extractedPath)
 				#get list of the extracted files:
 				targetFilePaths = dict()
@@ -327,7 +333,7 @@ def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 			sys.stdout.flush()
 			if(len(archiveParentName) == 0):
 				iNumTopLevelFilesProcessed = iNumTopLevelFilesProcessed + 1
-				printOut ( "\r Progress: " + str((iNumTopLevelFilesProcessed * 100) / len(archiveFilePaths)) + "%", LOG_INFO, False ) #show some progress, even if low verbosity
+				printOut ( "\r>> Progress: " + str((iNumTopLevelFilesProcessed * 100) / len(archiveFilePaths)) + "%", LOG_INFO, False ) #show some progress, even if low verbosity
 
 ###############################################################
 #search the files:
@@ -370,6 +376,10 @@ def findTextInFile(textSrcFilePath, textToFind):
 #main process:
 text_file = open(resultFilePath, 'a')
 
+#make the unzipped location be named after the result file, to allow for concurrent instances
+unzippedDir = tempDir + "\\unzipped_log_archive__" + getFileName(resultFilePath) + "\\"
+ensureDirExists(unzippedDir)
+
 #find archives + uncompressed log files:
 
 printOut("Searching for archive files and uncompressed logs ...")
@@ -378,6 +388,9 @@ search_files(searchDirPath, archiveFilePaths)
 
 #process the archives:
 processArchives(archiveFilePaths, regEx)
+
+clearOutDir(unzippedDir)
+os.rmdir(unzippedDir)
 
 ###############################################################
 #print summary of results		

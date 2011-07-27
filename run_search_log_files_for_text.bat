@@ -9,7 +9,9 @@ SET _DIR_TO_SEARCH=%1
 
 SET _TEXT_TO_SEARCH=%2
 
-python unzip_and_find_text.py %_DIR_TO_SEARCH% %_TEXT_TO_SEARCH% -r %TEMP%\log_file_search_result_2.txt
+SET _RESULT_FILE=%3
+
+python unzip_and_find_text.py %_DIR_TO_SEARCH% %_TEXT_TO_SEARCH% -r %_RESULT_FILE%
 
 IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 

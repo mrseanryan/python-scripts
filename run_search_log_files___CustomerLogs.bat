@@ -1,4 +1,4 @@
-REM TEST to try the BAT files, that search BWAC log files for special text
+REM search BWAC log files for special text
 
 REM we search these kinds of files:
 REM rar zip log
@@ -11,10 +11,17 @@ REM TEXT 1 ========================================
 
 SET _TEXT_TO_SEARCH="CDatabase::GetpRst"
 
-SET _DIR_TO_SEARCH="test_data"
+SET _RESULT_FILE="%TEMP%\log_search_result__CustomerLogs.txt"
+SET _DIR_TO_SEARCH="\\iefiles4\Groups\Customer Logs"
+CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH% %_RESULT_FILE%
+IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
-SET _RESULT_FILE="%TEMP%\log_search_result_1.txt"
+REM TEXT 2 ========================================
 
+SET _TEXT_TO_SEARCH=“Error: COM exception”
+
+SET _RESULT_FILE="%TEMP%\log_search_result__CustomerLogs.txt"
+SET _DIR_TO_SEARCH="\\iefiles4\Groups\Customer Logs"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH% %_RESULT_FILE%
 IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
@@ -23,7 +30,7 @@ GOTO Done
 
 REM Report the compiler error; then exit
 :SomeErrorOccurred
-REM Raise an error:
+REM raise an error:
 Error occurred!
 
 :Done
