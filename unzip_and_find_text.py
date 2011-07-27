@@ -257,7 +257,7 @@ def unrarFile(archivePath, extractedPath):
 
 def unzipFile(archivePath, extractedPath):
 	exe = pathTo7zExe
-	args = 'x "' + os.path.abspath(archivePath) + '" -o' + os.path.abspath(extractedPath) + " -y"
+	args = 'x "' + os.path.abspath(archivePath) + '" -o"' + os.path.abspath(extractedPath) + '" -y'
 	runExe(exe, args)
 
 ###############################################################
