@@ -247,6 +247,7 @@ def runExe(targetScriptPath, args):
 	(stdout_cap, stderr_cap) = process.communicate()
 	if(len(stderr_cap) > 0):
 		raise Exception(str(stderr_cap))
+	printOut(" >> " + str(stdout_cap));
 	#TODO - catch error return code !
 	
 def unrarFile(archivePath, extractedPath):
@@ -255,7 +256,7 @@ def unrarFile(archivePath, extractedPath):
 
 def unzipFile(archivePath, extractedPath):
 	exe = pathTo7zExe
-	args = 'x "' + os.path.abspath(archivePath) + '" -o' + os.path.abspath(extractedPath)
+	args = 'x "' + os.path.abspath(archivePath) + '" -o' + os.path.abspath(extractedPath) + " -y"
 	runExe(exe, args)
 
 ###############################################################
