@@ -5,20 +5,23 @@ REM rar zip log
 
 SETLOCAL
 
-SET _DIR_TO_SEARCH=%1
+REM for clearer output, we search for 1 text item at a time
 
-SET _TEXT_TO_SEARCH=%2
+REM TEXT 1 ========================================
 
-python unzip_and_find_text.py %_DIR_TO_SEARCH% %_TEXT_TO_SEARCH% -r %TEMP%\log_file_search_result_2.txt
+SET _TEXT_TO_SEARCH="CDatabase::GetpRst"
 
+SET _DIR_TO_SEARCH="\\iefiles4\groups\Customer Logs\Bank Muscat\140"
+CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH%
 IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
+
 
 REM Skip over the error handling and exit
 GOTO Done
 
 REM Report the compiler error; then exit
 :SomeErrorOccurred
-REM Raise an error:
+REM raise an error:
 Error occurred!
 
 :Done

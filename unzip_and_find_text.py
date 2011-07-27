@@ -9,6 +9,7 @@ Usage: unzip_and_find_text.py <search dir path> <regular expression> [options]
 
 The options are:
 [-h help]
+[-r result file path]
 [-w show Warnings only]
 [-y say Yes to all prompts (no interaction)]
 
@@ -36,7 +37,7 @@ import traceback
 # Define some defaults:
 
 #LOG_WARNINGS_ONLY - this means, only output if the verbosity is LOG_WARNINGS
-LOG_ERRORS, LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(4)
+LOG_ERRORS, LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_INFO, LOG_VERBOSE = range(5)
 logVerbosity = LOG_VERBOSE
 
 searchDirPath = ""
@@ -47,7 +48,8 @@ extensions_of_archives  = ['rar', 'zip']
 extensions_of_text_files = ['txt', 'log']
 extensions = [ 'log', 'rar', 'zip']
 tempDir = tempfile.gettempdir()
-resultFilePath = tempDir + "\\log_file_search_result.txt"
+defaultResultFilePath = tempDir + "\\log_file_search_result.txt"
+resultFilePath = defaultResultFilePath
 
 dateTimeFormat = '%Y %m %d %H:%M'
 
@@ -79,6 +81,9 @@ def usage():
 ###############################################################
 #optparse - parse the args
 parser = OptionParser(usage='%prog <search dir path> <regular expression> [options]')
+parser.add_option('-r', '--resultfile', dest='resultFilePath', type='string', nargs=1,
+	 	 	 	default=defaultResultFilePath,
+	 	 	 	help='show only warnings (default: show all output)')
 parser.add_option('-w', '--warnings', dest='warnings', action='store_const',
 	 	 	 	const=LOG_WARNINGS, default=LOG_VERBOSE,
 	 	 	 	help='show only warnings (default: show all output)')
@@ -93,6 +98,7 @@ if(len(args) != 2):
 logVerbosity = options.warnings
 searchDirPath = args[0]
 regEx = args[1]
+resultFilePath = options.resultFilePath
 yesAllPrompts = options.yes_all
 
 ###############################################################
@@ -132,7 +138,8 @@ print ""
 numWarnings = 0
 iNumErrors = 0
 iNumArchivesFoundWithText = 0
-iNumArchivesProcessed = 0
+iNumArchivesProcessed = 0 #includes embedded archives
+iNumTopLevelFilesProcessed = 0 #excludes embedded archives
 
 ###############################################################
 #printOut()
@@ -255,7 +262,8 @@ def unzipArchive(archivePath, extractedPath):
 		unzipFile(archivePath, extractedPath)
 	else:
 		raise Exception ("Unrecognised extension: " + ext)
-	
+
+#TODO - make a class for the Result File
 def appendToResultFile(text):
 	global text_file
 	global dateTimeFormat
@@ -263,6 +271,10 @@ def appendToResultFile(text):
 	timeNow = datetime.datetime.now()
 	text_file.write(timeNow.strftime(dateTimeFormat) + " - " + text + "\n")
 	printOut("\n" + text)
+
+def flushResultFile():
+	global text_file
+	text_file.flush()
 
 def writeToResultFile(archivePath, regEx, foundInFiles):
 	appendToResultFile("=================================")
@@ -276,7 +288,7 @@ def writeToResultFile(archivePath, regEx, foundInFiles):
 ###############################################################
 #process the archives:
 def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
-	global numWarnings, iNumErrors
+	global numWarnings, iNumErrors, iNumTopLevelFilesProcessed
 	for fileName in archiveFilePaths:
 		srcFilePathSet = archiveFilePaths[fileName]
 		for archivePath in srcFilePathSet:
@@ -289,8 +301,7 @@ def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 				#get list of the extracted files:
 				targetFilePaths = dict()
 				search_files(extractedPath, targetFilePaths)
-				#check for embedded archives:
-				#TODO - process these, recursively
+				#check for embedded archives - we process these, recursively
 				embeddedArchiveFilePaths = dict()
 				for archiveFileName in targetFilePaths:
 					if(IsFileAnArchive(archiveFileName)):
@@ -311,6 +322,12 @@ def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 				traceback.print_exc(file=sys.stdout)
 				printOut("Error occurred with archive " + archivePath + " - " + str(sys.exc_info()[0]), LOG_ERRORS)
 				iNumErrors = iNumErrors + 1
+			#flush our output, to keep the output up to date:
+			flushResultFile()
+			sys.stdout.flush()
+			if(len(archiveParentName) == 0):
+				iNumTopLevelFilesProcessed = iNumTopLevelFilesProcessed + 1
+				printOut ( "\r Progress: " + str((iNumTopLevelFilesProcessed * 100) / len(archiveFilePaths)) + "%", LOG_INFO, False ) #show some progress, even if low verbosity
 
 ###############################################################
 #search the files:
@@ -367,7 +384,8 @@ processArchives(archiveFilePaths, regEx)
 summary = ""
 summary += "\n" + ""
 summary += "\n" + "Text was found in " + str(iNumArchivesFoundWithText) + " files"
-summary += "\n" + str(iNumArchivesProcessed) + " files were processed"
+summary += "\n" + str(iNumTopLevelFilesProcessed) + " top level files were processed"
+summary += "\n" + str(iNumArchivesProcessed) + " top level files and embedded archives were processed"
 summary += "\n" + str(numWarnings) + " warnings occurred"
 summary += "\n" + str(iNumErrors) + " errors occurred"
 
