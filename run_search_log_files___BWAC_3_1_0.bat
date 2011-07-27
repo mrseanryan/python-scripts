@@ -18,7 +18,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
 
 REM TEXT 2 ========================================
 
-SET _TEXT_TO_SEARCH=“Error: COM exception”
+SET _TEXT_TO_SEARCH="Error: COM exception"
 
 SET _RESULT_FILE="%TEMP%\log_search_result___BWAC_3_1_0_Large_Logfiles.txt"
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\QA\BWAC_3_1_0_Large_Logfiles"

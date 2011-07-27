@@ -9,7 +9,7 @@ REM for clearer output, we search for 1 text item at a time
 
 REM TEXT 1 ========================================
 
-SET _TEXT_TO_SEARCH="CDatabase::GetpRst"
+SET _TEXT_TO_SEARCH="Error: COM exception"
 
 SET _DIR_TO_SEARCH="test_data"
 
