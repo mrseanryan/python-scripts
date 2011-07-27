@@ -140,6 +140,7 @@ iNumErrors = 0
 iNumArchivesFoundWithText = 0
 iNumArchivesProcessed = 0 #includes embedded archives
 iNumTopLevelFilesProcessed = 0 #excludes embedded archives
+iNumTopLevelFiles = 0
 
 ###############################################################
 def ensureDirExists(dirPath):
@@ -193,11 +194,14 @@ def IsFileExtensionOk(filename):
 
 ###############################################################
 #search_files - recursively search the given directory, and populate the map with files that match our list of extensions
+#
+#returns: the number of files found
 def search_files(dir, result_dict):
 	global numWarnings
 	basedir = dir
 	#print "Files in ", dir, ": "
 	subdirlist = []
+	iNumFiles = 0
 	for filename in os.listdir(dir):
 		if os.path.isfile(os.path.join(basedir,filename)):
 			if IsFileExtensionOk(filename):
@@ -208,10 +212,12 @@ def search_files(dir, result_dict):
 				else:
 					result_dict[filename] = setOfPaths
 				setOfPaths.add( os.path.join(basedir, filename) )
+				iNumFiles = iNumFiles + 1
 		else:
 			subdirlist.append(os.path.join(basedir, filename))
 	for subdir in subdirlist:
-		search_files(subdir, result_dict)
+		iNumFiles = iNumFiles + search_files(subdir, result_dict)
+	return iNumFiles
 
 ###############################################################
 def clearOutDir(dirPath):
@@ -294,7 +300,7 @@ def writeToResultFile(archivePath, regEx, foundInFiles):
 ###############################################################
 #process the archives:
 def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
-	global numWarnings, iNumErrors, iNumTopLevelFilesProcessed, unzippedDir
+	global numWarnings, iNumErrors, iNumTopLevelFiles, iNumTopLevelFilesProcessed, unzippedDir
 	for fileName in archiveFilePaths:
 		srcFilePathSet = archiveFilePaths[fileName]
 		for archivePath in srcFilePathSet:
@@ -333,7 +339,7 @@ def processArchives(archiveFilePaths, regEx, archiveParentName = ""):
 			sys.stdout.flush()
 			if(len(archiveParentName) == 0):
 				iNumTopLevelFilesProcessed = iNumTopLevelFilesProcessed + 1
-				printOut ( "\r>> Progress: " + str((iNumTopLevelFilesProcessed * 100) / len(archiveFilePaths)) + "%", LOG_INFO, False ) #show some progress, even if low verbosity
+				printOut ( "\r>> Progress: " + str((iNumTopLevelFilesProcessed * 100) / iNumTopLevelFiles) + "%", LOG_INFO, False ) #show some progress, even if low verbosity
 
 ###############################################################
 #search the files:
@@ -384,7 +390,7 @@ clearOutDir(unzippedDir)
 #find archives + uncompressed log files:
 printOut("Searching for archive files and uncompressed logs ...")
 archiveFilePaths = dict()
-search_files(searchDirPath, archiveFilePaths)
+iNumTopLevelFiles = search_files(searchDirPath, archiveFilePaths)
 
 #process the archives:
 processArchives(archiveFilePaths, regEx)

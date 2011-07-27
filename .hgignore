@@ -36,6 +36,7 @@ Thumbs.db
 #general temp files:
 *.bak
 old
+temp
 
 #Sphinx (custom):
 old_build
