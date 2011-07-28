@@ -385,6 +385,12 @@ def findTextInFile(textSrcFilePath, textToFind):
 			iNumFound = iNumFound + 1
 	return iNumFound
 
+def getElapsedTime(startTime):
+	elapsed = (time.time() - startTime)
+	elapsedTime = time.localtime( elapsed )
+	dateTimeFormat = '%H hours %M minutes %S seconds'
+	return (time.strftime(dateTimeFormat, elapsedTime))
+
 ###############################################################
 #main process:
 text_file = open(resultFilePath, 'a')
@@ -419,8 +425,7 @@ summary += "\n" + str(iNumErrors) + " errors occurred"
 
 appendToResultFile(summary)
 
-elapsed = (time.time() - startTime)
-appendToResultFile("Time taken: " + str(elapsed))
+appendToResultFile("Time taken: " + getElapsedTime(startTime))
 
 appendToResultFile("Finished prcoessing.")
 
