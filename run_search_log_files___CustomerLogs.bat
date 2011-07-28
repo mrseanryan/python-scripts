@@ -9,7 +9,7 @@ REM for clearer output, we search for 1 text item at a time
 
 REM TEXT 1 ========================================
 
-SET _TEXT_TO_SEARCH="CDatabase::GetpRst"
+SET _TEXT_TO_SEARCH="CDatabase::GetpRst "
 
 SET _RESULT_FILE="%TEMP%\log_search_result__CustomerLogs.txt"
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\Customer Logs"
@@ -18,7 +18,7 @@ IF %ERRORLEVEL% NEQ 0 ECHO "Some Error Occurred!"
 
 REM TEXT 2 ========================================
 
-SET _TEXT_TO_SEARCH="Error: COM exception"
+SET _TEXT_TO_SEARCH="CDatabase::GetpRstCache "
 
 SET _RESULT_FILE="%TEMP%\log_search_result__CustomerLogs.txt"
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\Customer Logs"

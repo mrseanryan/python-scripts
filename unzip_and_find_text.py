@@ -93,6 +93,10 @@ parser.add_option('-y', '--yes', dest='yes_all', action='store_const',
 	 	 	 	const=True, default=True,
 	 	 	 	help='automatically say Yes to allow prompts (default: prompt user)')
 
+#TODO - add a way to specifiy a LIST of search strings - maybe in a text file.
+#				then we can speed up the search, by searching for multiple strings at once
+#				this may make output harder to read ?
+				
 (options, args) = parser.parse_args()
 if(len(args) != 2):
 	usage()
