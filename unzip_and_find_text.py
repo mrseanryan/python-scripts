@@ -55,6 +55,8 @@ dateTimeFormat = '%Y %m %d %H:%M'
 
 pathTo7zExe = "C:\\7-Zip\\7z.exe"
 
+startTime = time.time()
+
 ###############################################################
 #ask_ok() - prompts the user to continue
 def ask_ok(prompt, retries=3, complaint='Yes or no, please!'):
@@ -153,8 +155,10 @@ def ensureDirExists(dirPath):
 #this function prints out, according to user's options for verbosity
 def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 	global logVerbosity
-	if verb == LOG_WARNINGS:
-		txt = "!!! Warning - " + txt
+	if verb == LOG_ERRORS:
+		txt = "!!! Error: " + txt
+	elif verb == LOG_WARNINGS:
+		txt = "!!! Warning: " + txt
 	if(bNewLine):
 		txt = txt + "\n"
 	if verb == LOG_WARNINGS_ONLY:
@@ -244,9 +248,11 @@ def runExe(targetScriptPath, args):
 	toExec = targetScriptPath + " " + args
 	printOut("Running exe " + toExec)
 	process = subprocess.Popen(toExec, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd = scriptWorkingDir)
+	#TODO - optionally send some text<ENTER> to skip password protected archvies OR look at archvie first
 	(stdout_cap, stderr_cap) = process.communicate()
 	if(len(stderr_cap) > 0):
 		raise Exception(str(stderr_cap))
+		#TODO - try to process contents of archive anyway (can have a partially successful extraction)
 	printOut(" >> " + str(stdout_cap));
 	if(process.returncode != 0):
 		raise Exception("Process returned error code:" + str(process.returncode))
@@ -281,7 +287,6 @@ def unzipArchive(archivePath, extractedPath):
 def appendToResultFile(text):
 	global text_file
 	global dateTimeFormat
-	#timeNow = date.fromtimestamp(time.time())
 	timeNow = datetime.datetime.now()
 	text_file.write(timeNow.strftime(dateTimeFormat) + " - " + text + "\n")
 	printOut("\n" + text)
@@ -384,6 +389,8 @@ def findTextInFile(textSrcFilePath, textToFind):
 #main process:
 text_file = open(resultFilePath, 'a')
 
+appendToResultFile("Beginning prcoessing...")
+
 #make the unzipped location be named after the result file, to allow for concurrent instances
 unzippedDir = tempDir + "\\unzipped_log_archive__" + getFileName(resultFilePath) + "\\"
 ensureDirExists(unzippedDir)
@@ -411,6 +418,11 @@ summary += "\n" + str(numWarnings) + " warnings occurred"
 summary += "\n" + str(iNumErrors) + " errors occurred"
 
 appendToResultFile(summary)
+
+elapsed = (time.time() - startTime)
+appendToResultFile("Time taken: " + str(elapsed))
+
+appendToResultFile("Finished prcoessing.")
 
 text_file.close()
 

@@ -14,7 +14,7 @@ SET _TEXT_TO_SEARCH="CDatabase::GetpRst"
 SET _RESULT_FILE="%TEMP%\log_search_result__CustomerLogs.txt"
 SET _DIR_TO_SEARCH="\\iefiles4\Groups\Customer Logs"
 CALL run_search_log_files_for_text.bat   %_DIR_TO_SEARCH%   %_TEXT_TO_SEARCH% %_RESULT_FILE%
-IF %ERRORLEVEL% NEQ 0 GOTO SomeErrorOccurred
+IF %ERRORLEVEL% NEQ 0 ECHO "Some Error Occurred!"
 
 REM TEXT 2 ========================================
 
