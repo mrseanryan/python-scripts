@@ -26,6 +26,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 
@@ -197,14 +198,21 @@ def getFileName(filePath):
 	return os.path.basename(filePath)
 
 def getUniqueArchiveName(searchDirPath, archiveDirPath):
-	numZipId = 1
-	#xxx
-	return getFileName(searchDirPath) + "_auto_" + str(numZipId) + ".zip"
+	numZipId = 0
+	bIsUniquePath = False
+	newArchiveFileName = ""#
+	while(not bIsUniquePath):
+		numZipId = numZipId + 1
+		newArchiveFileName = getFileName(searchDirPath) + "_auto_" + str(numZipId) + ".zip"
+		newArchiveAbsPath = os.path.abspath(archiveDirPath + "\\" + newArchiveFileName)
+		bIsUniquePath = not os.path.exists(newArchiveAbsPath)
+	return newArchiveFileName
 
 #make the zip of the source dir, to TEMP
 #returns newArchiveFilePath
 def createArchive(searchDirPath, archiveDirPath):
-	newArchiveFilePath = archiveDirPath + getUniqueArchiveName(searchDirPath, archiveDirPath)
+	tempDirPath = tempfile.gettempdir()
+	newArchiveFilePath = tempDirPath + "\\" + getUniqueArchiveName(searchDirPath, archiveDirPath)
 	#xxx next line is temporary!
 	if os.path.exists(newArchiveFilePath):
 		os.remove(newArchiveFilePath)
@@ -222,12 +230,19 @@ def deleteFiles(oldArchives):
 	for path in oldArchives:
 		os.remove(path)
 
+def getElapsedTime(startTime):
+	elapsed = (time.time() - startTime)
+	elapsedTime = time.localtime( elapsed )
+	dateTimeFormat = '%H hours %M minutes %S seconds'
+	return (time.strftime(dateTimeFormat, elapsedTime))
+
 #print a summary
-def printSummary(numWarnings, numErrors, numOldArchives, searchDirPath, newArchiveFilePath):
+def printSummary(numWarnings, numErrors, numOldArchives, searchDirPath, newArchiveFilePath, startTime):
 	print "Archived the directory " + searchDirPath + " to the archive file " + newArchiveFilePath
 	print str(numWarnings) + " warnings occurred"
 	print str(numErrors) + " errors occurred"
 	print str(numOldArchives) + " old archives were deleted"
+	print("Time taken: " + getElapsedTime(startTime))
 
 ###############################################################
 #main
@@ -250,4 +265,4 @@ moveFile(newArchiveFilePath, archiveDirPath)
 deleteFiles(oldArchives)
 
 #6. print a summary
-printSummary(numWarnings, numErrors, len(oldArchives), searchDirPath, newArchiveFilePath)
+printSummary(numWarnings, numErrors, len(oldArchives), searchDirPath, newArchiveFilePath, startTime)
