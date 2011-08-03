@@ -1,5 +1,5 @@
 """
-backup_directory.py
+backup_directory.py version 1.0
 
 Simple script to archive a directory, in order to have a backup.
 
