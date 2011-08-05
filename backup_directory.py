@@ -209,8 +209,6 @@ def findExistingArchives(archiveDirPath):
 #decide which archive(s) will be deleted at the end (prompt user)
 #returns oldArchives
 def getOldArchives(existingArchives, numArchivesToKeep):
-	#import pdb
-	#pdb.set_trace()
 	oldArchives = list()
 	archivesToDelete = list()
 	
@@ -251,7 +249,8 @@ def zipFile(dirPath, archivePath):
 def getUniqueArchiveName(searchDirPath, archiveDirPath):
 	numZipId = 0
 	bIsUniquePath = False
-	newArchiveFileName = ""#
+	newArchiveFileName = ""
+	#TODO - make this a bit smarter, so that numbers ALWAYS go up, even when old archives are deleted.
 	while(not bIsUniquePath):
 		numZipId = numZipId + 1
 		newArchiveFileName = getFileName(searchDirPath) + getArchiveSuffix() + str(numZipId) + ".zip"
