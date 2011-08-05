@@ -251,6 +251,7 @@ def getUniqueArchiveName(searchDirPath, archiveDirPath):
 	bIsUniquePath = False
 	newArchiveFileName = ""
 	#TODO - make this a bit smarter, so that numbers ALWAYS go up, even when old archives are deleted.
+	#TODO - also append date into the name, to keep trust of user :-)
 	while(not bIsUniquePath):
 		numZipId = numZipId + 1
 		newArchiveFileName = getFileName(searchDirPath) + getArchiveSuffix() + str(numZipId) + ".zip"
