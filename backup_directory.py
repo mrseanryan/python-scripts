@@ -1,5 +1,5 @@
 """
-backup_directory.py version 1.0
+backup_directory.py version 1.1
 
 Simple script to archive a directory, in order to have a backup.
 
@@ -22,6 +22,7 @@ Example: backup_directory.py c:\myData c:\myZipFiles 3 -w -y
 
 from optparse import OptionParser
 from os.path import exists, join, pathsep
+import datetime
 import os
 import shutil
 import subprocess
@@ -111,7 +112,7 @@ if(len(args) != 3):
 logVerbosity = options.warnings
 searchDirPath = args[0]
 archiveDirPath = args[1]
-numArchivesToKeep = args[2]
+numArchivesToKeep = int(args[2])
 yesAllPrompts = options.yes_all
 
 ###############################################################
@@ -121,7 +122,7 @@ print "--------------"
 
 print "searchDirPath: " + searchDirPath + "\n"
 print "archiveDirPath: " + archiveDirPath + "\n"
-print "numArchivesToKeep: " + numArchivesToKeep + "\n"
+print "numArchivesToKeep: " + str(numArchivesToKeep) + "\n"
 
 print ""
 
@@ -154,22 +155,75 @@ numErrors = 0
 
 ###############################################################
 
+def getArchiveSuffix():
+	return "_auto_"
+
+def IsFileAnArchive(filePath):
+	return getArchiveSuffix() in filePath and filePath.endswith(".zip")
+
+###############################################################
+# Function to get the datetime on which the given file was last modified.
+def getFileModTime(filePath):
+    tm = os.path.getmtime(filePath)
+    return datetime.datetime.fromtimestamp(tm)
+
+def getFileName(filePath):
+	return os.path.basename(filePath)
+
+###############################################################
+class FileDetails:
+	"""holds details about a file, including modified time"""
+	def __init__(self, filePath):
+		self.dateTimeStamp = getFileModTime(filePath)
+		self.fileName = getFileName(filePath)
+		self.filePath = filePath
+		self.fileSize = os.path.getsize(filePath)
+
+def getDescOfFileDetails(fileDetails):
+	descOfDetails = ""
+	for fileDetail in fileDetails:
+		descOfDetails = descOfDetails + fileDetail.fileName + " : " + str(fileDetail.dateTimeStamp) + ", "
+	return descOfDetails
+
 #search the archive dir for existing archives
 #returns existingArchives 
 def findExistingArchives(archiveDirPath):
-	existingArchives = ()
-	#xxx
+	existingArchives = list()
+	
+	for filename in os.listdir(archiveDirPath):
+		filePath = os.path.join(archiveDirPath,filename)
+		if os.path.isfile(filePath):
+			if IsFileAnArchive(filename):
+				existingArchives.append(FileDetails(filePath))
+	#sort the archives, starting with the newest:
+	
+	existingArchives = sorted(existingArchives, key=lambda fileDetails: fileDetails.dateTimeStamp)
+	
+	#reverse the list, so that it starts with the oldest:
+	existingArchives.reverse()
+	
+	print "\nExisting archives found: " + getDescOfFileDetails(existingArchives)
+	
 	return existingArchives
 
 #decide which archive(s) will be deleted at the end (prompt user)
 #returns oldArchives
 def getOldArchives(existingArchives, numArchivesToKeep):
-	oldArchives = ()
-	#xxxx
-	return oldArchives
+	#import pdb
+	#pdb.set_trace()
+	oldArchives = list()
+	archivesToDelete = list()
+	
+	numArchivesToDelete = len(existingArchives) + 1 - numArchivesToKeep # we should have a total of numArchivesToKeep, after current archive has been created
+
+	while( len(archivesToDelete) < numArchivesToDelete ):
+		archivesToDelete.append(existingArchives.pop())
+	
+	return archivesToDelete
 
 def promptUserIfOkToDeleteArchives(oldArchives):
-	print "Old archives found: " + ", ".join(oldArchives)
+	strListOfArchives = getDescOfFileDetails(oldArchives)
+	print "\nOld archives found: " + strListOfArchives
 	if(len(oldArchives) == 0):
 		print " (none found)"
 	else:
@@ -194,16 +248,13 @@ def zipFile(dirPath, archivePath):
 	args = 'a "' + os.path.abspath(archivePath) +'" "' +  os.path.abspath(dirPath) + '" -tzip -mx7 -y' #.zip and high compression
 	runExe(exe, args)
 
-def getFileName(filePath):
-	return os.path.basename(filePath)
-
 def getUniqueArchiveName(searchDirPath, archiveDirPath):
 	numZipId = 0
 	bIsUniquePath = False
 	newArchiveFileName = ""#
 	while(not bIsUniquePath):
 		numZipId = numZipId + 1
-		newArchiveFileName = getFileName(searchDirPath) + "_auto_" + str(numZipId) + ".zip"
+		newArchiveFileName = getFileName(searchDirPath) + getArchiveSuffix() + str(numZipId) + ".zip"
 		newArchiveAbsPath = os.path.abspath(archiveDirPath + "\\" + newArchiveFileName)
 		bIsUniquePath = not os.path.exists(newArchiveAbsPath)
 	return newArchiveFileName
@@ -227,8 +278,8 @@ def moveFile(newArchiveFilePath, archiveDirPath):
 
 #delete the old archive(s)
 def deleteFiles(oldArchives):
-	for path in oldArchives:
-		os.remove(path)
+	for pathDetails in oldArchives:
+		os.remove(pathDetails.filePath)
 
 def getElapsedTime(startTime):
 	elapsed = (time.time() - startTime)
