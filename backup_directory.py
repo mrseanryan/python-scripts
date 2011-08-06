@@ -266,7 +266,7 @@ def getUniqueArchiveName(searchDirPath, archiveDirPath):
 def createArchive(searchDirPath, archiveDirPath):
 	tempDirPath = tempfile.gettempdir()
 	newArchiveFilePath = tempDirPath + "\\" + getUniqueArchiveName(searchDirPath, archiveDirPath)
-	#xxx next line is temporary!
+	#del the temp archive, in case it was left over:
 	if os.path.exists(newArchiveFilePath):
 		os.remove(newArchiveFilePath)
 	zipFile(searchDirPath, newArchiveFilePath)
