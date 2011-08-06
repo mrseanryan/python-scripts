@@ -1,5 +1,5 @@
 """
-backup_directory.py version 1.1
+backup_directory.py version 1.2
 
 Simple script to archive a directory, in order to have a backup.
 
@@ -50,8 +50,6 @@ searchDirPath = ""
 archiveDirPath = ""
 
 numArchivesToKeep = 0
-
-dateTimeFormat = '%Y %m %d %H:%M'
 
 startTime = time.time()
 
@@ -246,15 +244,19 @@ def zipFile(dirPath, archivePath):
 	args = 'a "' + os.path.abspath(archivePath) +'" "' +  os.path.abspath(dirPath) + '" -tzip -mx7 -y' #.zip and high compression
 	runExe(exe, args)
 
+def getDateYearFirst():
+	dateTimeFormat = '%Y-%m-%d'
+	now = datetime.datetime.now()
+	return (now.strftime(dateTimeFormat))
+
 def getUniqueArchiveName(searchDirPath, archiveDirPath):
 	numZipId = 0
 	bIsUniquePath = False
 	newArchiveFileName = ""
 	#TODO - make this a bit smarter, so that numbers ALWAYS go up, even when old archives are deleted.
-	#TODO - also append date into the name, to keep trust of user :-)
 	while(not bIsUniquePath):
 		numZipId = numZipId + 1
-		newArchiveFileName = getFileName(searchDirPath) + getArchiveSuffix() + str(numZipId) + ".zip"
+		newArchiveFileName = getFileName(searchDirPath) + getArchiveSuffix() + getDateYearFirst() + "_" + str(numZipId) + ".zip"
 		newArchiveAbsPath = os.path.abspath(archiveDirPath + "\\" + newArchiveFileName)
 		bIsUniquePath = not os.path.exists(newArchiveAbsPath)
 	return newArchiveFileName
@@ -307,10 +309,12 @@ oldArchives = getOldArchives(existingArchives, numArchivesToKeep)
 promptUserIfOkToDeleteArchives(oldArchives)
 
 #3. make the zip of the source dir, to TEMP
-newArchiveFilePath = createArchive(searchDirPath, archiveDirPath)
+tempArchiveFilePath = createArchive(searchDirPath, archiveDirPath)
 
 #4. move the zip to the archive dir
-moveFile(newArchiveFilePath, archiveDirPath)
+moveFile(tempArchiveFilePath, archiveDirPath)
+
+newArchiveFilePath = archiveDirPath + "\\" + getFileName(tempArchiveFilePath)
 
 #5. delete the old archive(s)
 deleteFiles(oldArchives)
