@@ -17,7 +17,7 @@ Example: schedule_command.py c:\myLovelyCommand.exe 5 -w -y
 
 Dependencies:
 - Windows XP or later
-- Python 2.7
+- Python 2.7 or 3.x
 """
 
 from optparse import OptionParser
@@ -46,7 +46,7 @@ startTime = time.time()
 def ask_ok(prompt, retries=3, complaint='Yes or no, please!'):
 	global yesAllPrompts
 	if yesAllPrompts:
-		print prompt + " (Y)"
+		print(prompt + " (Y)")
 		return True
 	while True:
 		ok = raw_input(prompt)
@@ -57,7 +57,7 @@ def ask_ok(prompt, retries=3, complaint='Yes or no, please!'):
 		retries = retries - 1
 		if retries < 0:
 			raise IOError('refusenik user')
-		print complaint		
+		print(complaint)
 
 ###############################################################
 #printOut()
@@ -79,7 +79,7 @@ def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 ###############################################################
 #usage() - prints out the usage text, from the top of this file :-)
 def usage():
-	print __doc__
+	print (__doc__)
 
 ###############################################################
 #optparse - parse the args
@@ -102,34 +102,34 @@ yesAllPrompts = options.yes_all
 
 ###############################################################
 #print out summary of the configuration, and prompt user to continue:
-print "Configuration:"
-print "--------------"
+print ("Configuration:")
+print ("--------------")
 
-print "commandToRun: " + commandToRun + "\n"
-print "minutesToWait: " + str(minutesToWait) + "\n"
+print ("commandToRun: " + commandToRun + "\n")
+print ("minutesToWait: " + str(minutesToWait) + "\n")
 
-print ""
+print ("")
 
 if logVerbosity == LOG_WARNINGS:
-	print "Output will show warnings only\n"
+	print ("Output will show warnings only\n")
 elif logVerbosity == LOG_VERBOSE:
-	print "Output is verbose\n"
+	print ("Output is verbose\n")
 else:
-	print "Invalid verbosity level: " + logVerbosity
+	print ("Invalid verbosity level: " + logVerbosity)
 	sys.exit(1)
 
-print "We will schedule the command " + commandToRun + " to run in " + str(minutesToWait) + " minutes time."
+print ("We will schedule the command " + commandToRun + " to run in " + str(minutesToWait) + " minutes time.")
 
-print ""
+print ("")
 
 if ask_ok("Do you wish to continue ? (Y/N)"):
 	#do nothing
-	print "ok"
+	print ("ok")
 else:
-	print "Exiting"
+	print ("Exiting")
 	sys.exit()
 	
-print ""
+print ("")
 
 ###############################################################
 
@@ -177,5 +177,5 @@ timeHHMM = getExecutionTime(minutesToWait)
 
 runAt(commandToRun, timeHHMM)
 
-print 'Command ' + commandToRun + ' is scheduled to run in ' + str(minutesToWait) + ' minutes.'
-print '[done]'
+print ('Command ' + commandToRun + ' is scheduled to run in ' + str(minutesToWait) + ' minutes.')
+print ('[done]')
