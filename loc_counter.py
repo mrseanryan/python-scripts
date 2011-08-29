@@ -85,16 +85,20 @@ from os import F_OK
 def filetype(name):
 
     file_ext_map = { "awk" : "AWK",
+                     "p" : "Perl",
                      "py" : "Python",
                      "pyl" : "Python",
                      "el" : "Emacs Lisp",
                      "elc" : "Emacs Lisp",
+#                    ### C++ ###
                      "h" : "C or C++ Header Files",
+                     "hpp" : "C or C++ Header Files",
                      "c" : "C",
                      "cc" : "C++",
                      "cpp" : "C++",
                      "c++" : "C++",
                      "m" : "Objective C",
+#                    ### END C++ ###
                      "tcl" : "TCL",
                      "html" : "HTML",
                      "htm" : "HTML",
@@ -112,10 +116,16 @@ def filetype(name):
                      "mk" : "Makefile",
                      "am" : "Automake",
                      "m4" : "M4",
+#                    ### SQL ###
                      "sql" : "SQL",
-                     "frm" : "VB6 forms",
-                     "bas" : "VB6 script",
-                     "cls" : "VB6 classes"
+#                    ### VB6 ###
+                     "frm" : "VB6",
+                     "bas" : "VB6",
+                     "cls" : "VB6",
+#                    ### .NET ###
+                     "config" : "config",
+                     "cs" : "C#",
+                     "rc" : "VS Resource file"
                      }
   
     (root, extension) = os.path.splitext(name)
