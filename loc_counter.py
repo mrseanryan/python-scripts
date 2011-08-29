@@ -89,7 +89,7 @@ def filetype(name):
                      "pyl" : "Python",
                      "el" : "Emacs Lisp",
                      "elc" : "Emacs Lisp",
-		     "h" : "C or C++ Header Files",
+                     "h" : "C or C++ Header Files",
                      "c" : "C",
                      "cc" : "C++",
                      "cpp" : "C++",
@@ -112,7 +112,10 @@ def filetype(name):
                      "mk" : "Makefile",
                      "am" : "Automake",
                      "m4" : "M4",
-                     "sql" : "SQL"
+                     "sql" : "SQL",
+                     "frm" : "VB6 forms",
+                     "bas" : "VB6 script",
+                     "cls" : "VB6 classes"
                      }
   
     (root, extension) = os.path.splitext(name)
