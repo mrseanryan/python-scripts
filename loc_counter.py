@@ -125,7 +125,9 @@ def filetype(name):
 #                    ### .NET ###
                      "config" : "config",
                      "cs" : "C#",
-                     "rc" : "VS Resource file"
+                     "rc" : "VS Resource file",
+#                    ### Powershell ###
+                     "ps1" : "Powershell"
                      }
   
     (root, extension) = os.path.splitext(name)
