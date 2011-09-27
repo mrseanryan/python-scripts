@@ -89,6 +89,10 @@ def compare_files(fileWithRegex, fileToCompare):
 		try:
 			valueRegex = itRegex.next() # in Python 2.x
 			#value = next(itRegex) # in Python 3.x
+			
+			if(valueRegex[0] == '#'):
+				continue #skip comment lines
+			
 			valueCompare = itCompare.next()
 		except StopIteration:
 			break
