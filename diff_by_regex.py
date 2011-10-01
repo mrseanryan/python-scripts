@@ -9,6 +9,7 @@ diff_by_regex.py <file with regular expressions> <file to compare> [options]
 
 The options are:
 [-h help]
+[-f first line is heading]
 """
 
 from optparse import OptionParser
@@ -40,6 +41,9 @@ def usage():
 ###############################################################
 #optparse - parse the args
 parser = OptionParser(usage='%prog <file with regular expressions> <file to compare> [options]')
+parser.add_option('-f', '--first line is heading', dest='firstLineIsHeading', action='store_const',
+                   const=True, default=False,
+                   help='Always output the first line as a heading, if there are differences found. (default: off)')
 
 (options, args) = parser.parse_args()
 if(len(args) != 2):
@@ -78,6 +82,7 @@ def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 ###############################################################
 #compare_files
 def compare_files(fileWithRegex, fileToCompare):
+	heading_line = ""
 	diff_lines = list()
 	lineNum = 1
 	#basic compare, line-by-line:
@@ -96,11 +101,13 @@ def compare_files(fileWithRegex, fileToCompare):
 			valueCompare = itCompare.next()
 		except StopIteration:
 			break
+		if(len(heading_line)==0):
+			heading_line = valueRegex
 		if(not are_lines_equal(valueRegex, valueCompare)):
 			diff_lines.append( (valueRegex, valueCompare, lineNum) );
 		lineNum = lineNum + 1
 	
-	return diff_lines
+	return (heading_line, diff_lines)
 
 ###############################################################
 #main process:
@@ -108,9 +115,15 @@ def compare_files(fileWithRegex, fileToCompare):
 fileWithRegex = open(filePathWithRegex, 'r')
 fileToCompare = open(filePathToCompare, 'r')
 
-diff_lines = compare_files(fileWithRegex, fileToCompare)
+(heading_line, diff_lines) = compare_files(fileWithRegex, fileToCompare)
 
 for lineDetails in diff_lines:
+	if(options.firstLineIsHeading):
+		#import pdb
+		#pdb.set_trace()
+		heading_line = heading_line.replace('\n','')
+		print(heading_line)
+		options.firstLineIsHeading = False
 	(valueRegex, valueCompare, lineNum) = lineDetails
 	print("[" + str(lineNum) + "] - " + valueRegex)
 	print("[" + str(lineNum) + "] + " + valueCompare)

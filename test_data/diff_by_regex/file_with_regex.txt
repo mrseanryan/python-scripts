@@ -1,5 +1,6 @@
-note - line 4 is the only different line!
+_031_ARN, _032_MemberID, _33_ProcessorID, _DE94, Comment
 #this is a comment line, that should be ignored
-05801231212121212,	12407,	13333,	12407
-([0-9]{1}580123[0-9]{10}),	12407,	13333,	12407
-([0-9]{1}666666[0-9]{10}),	12407,	13333,	12407
+05801231212121212,	12407,	13333,	12407, this line is same
+([0-9]{1}580123[0-9]{10}),	12407,	13333,	12407, this line is same
+#this is a comment line, that should be ignored
+([0-9]{1}666666[0-9]{10}),	12407,	13333,	12407, this line is different
