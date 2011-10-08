@@ -14,7 +14,7 @@ root = doc.firstChild
 doc.insertBefore(pi, root)
 
 # add the test tests:
-for iResult in range(1,5):
+for iResult in range(1,10+1):
 	test = doc.createElement("Test")
 	test.setAttribute("id", str(iResult))
 	testResult = doc.createElement("Result");
