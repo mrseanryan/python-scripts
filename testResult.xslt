@@ -32,7 +32,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <h2>IRD Test Results</h2>
 
 	<!-- IRD Summary ================================================ -->
-	<table border="1">
+	<table border="1" width="80%">
     <tr class="IRDsummaryHeading">
       <th>
 	  	<xsl:value-of select="count(IRDTests/IRDs/IRD)"/>
@@ -49,8 +49,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </tr>
   </table>
 
+  <span> <br/></span>
+
 	<!-- IRDs Failed ================================================ -->
-	<table border="1">
+	<table border="1" width="80%">
     <tr class="IRDsFailedHeading">
       <th>
 	  		<xsl:value-of select="count(IRDTests/IRDs/IRD[@pass='False'])"/>
@@ -67,8 +69,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </tr>
   </table>
 
+  <span> <br/></span>
+
 	<!-- IRD Tests ================================================== -->
-  <table border="1">
+  <table border="1" width="80%">
     <tr class="TestHeading">
       <th>Test ID</th>
       <th>IRD</th>
@@ -92,7 +96,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </xsl:for-each>
   </table>
 	
-	<table>
+	<table width="80%">
 		<xsl:value-of select="count(//Test[@result='fail'])"/> out of  
 		<xsl:value-of select="count(//Test)"/> tests failed.
 	</table>
