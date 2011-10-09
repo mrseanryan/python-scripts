@@ -33,7 +33,7 @@ def createXML(IRDtestResults):
 	root.appendChild(tests)
 	for irdResult in IRDtestResults:
 		test = doc.createElement("Test")
-		test.setAttribute("id", str(irdResult.TestId))
+		test.setAttribute("id", str(irdResult.TestId).lower())
 		test.setAttribute("IRD", irdResult.IRD)
 		
 		if not irdResult.IRD in IRDs:
@@ -42,7 +42,7 @@ def createXML(IRDtestResults):
 		if(not irdResult.bIsPass):
 			if not irdResult.IRD in failedIRDs:
 				failedIRDs.append(irdResult.IRD)
-		test.setAttribute("pass", str(irdResult.bIsPass))
+		test.setAttribute("pass", str(irdResult.bIsPass).lower())
 		tests.appendChild(test)
 
 	IRDs.sort()
@@ -58,7 +58,7 @@ def createXML(IRDtestResults):
 		bSuccess = True
 		if IRD in failedIRDs:
 			bSuccess = False
-		irdNode.setAttribute("pass", str(bSuccess))
+		irdNode.setAttribute("pass", str(bSuccess).lower())
 	
 	return doc
 

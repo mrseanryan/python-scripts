@@ -55,13 +55,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<table border="1" width="80%">
     <tr class="IRDsFailedHeading">
       <th>
-	  		<xsl:value-of select="count(IRDTests/IRDs/IRD[@pass='False'])"/>
+	  		<xsl:value-of select="count(IRDTests/IRDs/IRD[@pass='false'])"/>
 			IRDs Failed
 	  </th>
     </tr>
     <tr>
       <td>
-		<xsl:for-each select="IRDTests/IRDs/IRD[@pass='False']">
+		<xsl:for-each select="IRDTests/IRDs/IRD[@pass='false']">
 			<xsl:value-of select="@name"/>
 				,
 			</xsl:for-each>
@@ -84,7 +84,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       <td><xsl:value-of select="@IRD"/></td>
       <td>	  
 		<xsl:choose>
-			<xsl:when test="@pass = 'False' ">
+			<xsl:when test="@pass = 'false' ">
 				<p class="fail">Fail</p>
 			</xsl:when>
 			<xsl:otherwise>
@@ -97,7 +97,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   </table>
 	
 	<table width="80%">
-		<xsl:value-of select="count(//Test[@pass='False'])"/> out of  
+		<xsl:value-of select="count(//Test[@pass='false'])"/> out of  
 		<xsl:value-of select="count(//Test)"/> tests failed.
 	</table>
 
