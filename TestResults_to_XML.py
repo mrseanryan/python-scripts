@@ -39,13 +39,10 @@ def createXML(IRDtestResults):
 		if not irdResult.IRD in IRDs:
 			IRDs.append(irdResult.IRD)
 		
-		testResult = doc.createElement("Result")
-		testResult = "pass"
 		if(not irdResult.bIsPass):
-			testResult = "fail"
 			if not irdResult.IRD in failedIRDs:
 				failedIRDs.append(irdResult.IRD)
-		test.setAttribute("result", testResult)
+		test.setAttribute("pass", str(irdResult.bIsPass))
 		tests.appendChild(test)
 
 	#add summary of IRDs:

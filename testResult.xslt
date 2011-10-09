@@ -84,7 +84,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       <td><xsl:value-of select="@IRD"/></td>
       <td>	  
 		<xsl:choose>
-			<xsl:when test="@result = 'fail' ">
+			<xsl:when test="@pass = 'False' ">
 				<p class="fail">Fail</p>
 			</xsl:when>
 			<xsl:otherwise>
@@ -97,7 +97,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   </table>
 	
 	<table width="80%">
-		<xsl:value-of select="count(//Test[@result='fail'])"/> out of  
+		<xsl:value-of select="count(//Test[@pass='False'])"/> out of  
 		<xsl:value-of select="count(//Test)"/> tests failed.
 	</table>
 
