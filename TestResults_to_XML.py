@@ -45,6 +45,9 @@ def createXML(IRDtestResults):
 		test.setAttribute("pass", str(irdResult.bIsPass))
 		tests.appendChild(test)
 
+	IRDs.sort()
+	failedIRDs.sort()
+	
 	#add summary of IRDs:
 	IRDsNode = doc.createElement("IRDs")
 	root.appendChild(IRDsNode)
