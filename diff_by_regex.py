@@ -8,8 +8,9 @@ Usage:
 diff_by_regex.py <file with regular expressions> <file to compare> [options]
 
 The options are:
-[-h help]
-[-f first line is heading]
+[-h Help]
+[-f First line is heading]
+[-d Disable regex parsing]
 """
 
 from optparse import OptionParser
@@ -44,6 +45,9 @@ parser = OptionParser(usage='%prog <file with regular expressions> <file to comp
 parser.add_option('-f', '--first line is heading', dest='firstLineIsHeading', action='store_const',
                    const=True, default=False,
                    help='Always output the first line as a heading, if there are differences found. (default: off)')
+parser.add_option('-d', '--Disable regex parsing', dest='disableRegex', action='store_const',
+                   const=True, default=False,
+                   help='Disable the regex parsing of the first file. (default: off)')
 
 (options, args) = parser.parse_args()
 if(len(args) != 2):
@@ -55,12 +59,21 @@ filePathToCompare = args[1]
 
 ###############################################################
 #are_lines_equal
-def are_lines_equal(lineWithRegex, lineToCompare):
+def are_lines_equal(lineWithRegex, lineToCompare, bDisableRegex):
+	if bDisableRegex:
+		return are_lines_equal_no_regex(lineWithRegex, lineToCompare)
+	else:
+		return are_lines_equal_regex(lineWithRegex, lineToCompare)
+
+def are_lines_equal_regex(lineWithRegex, lineToCompare):
 	mat = re.search(lineWithRegex, lineToCompare)
 	if(mat):
 		return mat.group(0)
 	else:
 		return False
+
+def are_lines_equal_no_regex(lineWithRegex, lineToCompare):
+	return lineWithRegex == lineToCompare
 
 ###############################################################
 #printOut()
@@ -103,7 +116,7 @@ def compare_files(fileWithRegex, fileToCompare):
 			break
 		if(len(heading_line)==0):
 			heading_line = valueRegex
-		if(not are_lines_equal(valueRegex, valueCompare)):
+		if(not are_lines_equal(valueRegex, valueCompare, options.disableRegex)):
 			diff_lines.append( (valueRegex, valueCompare, lineNum) );
 		lineNum = lineNum + 1
 	

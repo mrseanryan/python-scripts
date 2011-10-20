@@ -1,0 +1,2 @@
+diff_by_regext should process this file with regex mode OFF
+{BAD REGEX} (
