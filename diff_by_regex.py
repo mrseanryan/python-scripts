@@ -130,8 +130,15 @@ def compare_files(fileWithRegex, fileToCompare):
 		lineNum = lineNum + 1
 	
 	#check are there more lines (the file is same, but longer):
-	if(lineCount(fileToCompare) > lineCount(fileWithRegex)):
-		diff_lines.append( ("", "Second file is longer", lineNum) )
+	fileToCompare_lines = lineCount(fileToCompare)
+	fileWithRegex_lines = lineCount(fileWithRegex)
+	import pdb
+	pdb.set_trace()
+	
+	if(fileToCompare_lines < fileWithRegex_lines):
+		diff_lines.append( ("", "< second file is smaller >", lineNum) )
+	if(fileToCompare_lines > fileWithRegex_lines):
+		diff_lines.append( ("", "< second file is longer >", lineNum) )
 	
 	return (heading_line, diff_lines)
 
