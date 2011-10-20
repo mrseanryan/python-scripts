@@ -8,4 +8,6 @@ SET templateFilePath=test_data\templates\IRD_calculation.template.sql
 
 SET outputFilepath=temp\IRD_calculation.template.processed.sql
 
-diff_by_regex.py	%templateFilePath%		%outputFilepath%
+SET known_good=test_data\templates\known_good_IRD_calculation.template.processed.sql
+
+diff_by_regex.py	%known_good%		%outputFilepath%			-d

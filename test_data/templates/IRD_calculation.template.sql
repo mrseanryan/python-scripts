@@ -46,7 +46,7 @@ WHERE
 	and mtd.ClearingNetwork = @ClearingNetwork
 	and ibr.ProductType = {ProductType} -- 1 = Consumer, 2 = Producer
 	and ProcessingType in ({ProcessingTypes}) --ProcessingType is Processing Code in the spec
-	and (not {bHasTimeliness} or xxx )-- timeliness
+	and (not {bHasTimeliness} or datediff(day, convert(datetime, left(mt.TransDateTime, 6), 12), @now) < {TimelinessInDays} )-- timeliness
 	and (not {bHasApprovalCode} or mt.ApprovalCode <> '000000' )-- approval code
 	and mcc.CABProgram in ({CABPrograms})
 	and ibr.AcceptanceBrand in ({AcceptanceBrands})
@@ -56,5 +56,5 @@ WHERE
 	)
 	and
 	(
-	{ExtraSQLwhere}
+		{ExtraSQLwhere}
 	)

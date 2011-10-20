@@ -40,21 +40,32 @@ FROM
 	)
 	inner join MC_Merchant md on md.MerchantKey = mtd.MerchantKey 
 	INNER JOIN CS_IPM_MCC mcc on mcc.MCC = md.SICCode
-	{ExtraSQLjoin}
+	--my ExtraSQLjoin
 WHERE
 	mtd.status = 5 --MTF transaction is valid and ready to process
 	and mtd.ClearingNetwork = @ClearingNetwork
-	and ibr.ProductType = {ProductType} -- 1 = Consumer, 2 = Producer
-	and ProcessingType in ({ProcessingTypes}) --ProcessingType is Processing Code in the spec
-	and (not {0} or datediff(day, convert(datetime, left(mt.TransDateTime, 6), 12), @now) < {0} )-- timeliness
-	and (not {bHasApprovalCode} or mt.ApprovalCode <> '000000' )-- approval code
-	and mcc.CABProgram in ({CABPrograms})
-	and ibr.AcceptanceBrand in ({AcceptanceBrands})
+	and ibr.ProductType = 1 -- 1 = Consumer, 2 = Producer
+	and ProcessingType in ('18', '20') --ProcessingType is Processing Code in the spec
+	and (not 0 or datediff(day, convert(datetime, left(mt.TransDateTime, 6), 12), @now) < 0 )-- timeliness
+	and (not 1 or mt.ApprovalCode <> '000000' )-- approval code
+	and mcc.CABProgram in ('A001', 'D001')
+	and ibr.AcceptanceBrand in ('MCC', 'DMC')
 	and
 	(
-		{RegionAndProductConditions}
+		--template for Region + Product conditions:
+		(
+			(
+			(ab.region in ('A', 'D', 'B', 'E', '1') and ibr.region = 'C') --region
+			)
+			and 
+			(
+				(ibr.AcceptanceBrand = 'MCC' and ibr.ProductID in ('MBK', 'MCC', 'MCG', 'MCS', 'MCT', 'MCV', 'MCW', 'MNW', 'MPL', 'MRG', 'MWE') ) -- GCMS Product ID
+				or
+				(ibr.AcceptanceBrand = 'DMC' and ibr.ProductID in ('MCD', 'MDG', 'MDH', 'MDJ', 'MDO', 'MDP', 'MDR', 'MDS', 'MPG', 'MPP') ) -- GCMS Product ID
+			)
+		)
 	)
 	and
 	(
-	{ExtraSQLwhere}
+		--my ExtraSQLwhere
 	)
