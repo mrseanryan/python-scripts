@@ -40,3 +40,6 @@ temp
 
 #Sphinx (custom):
 old_build
+
+#other:
+test_data\xml_parsing\xml\note.xsx 
