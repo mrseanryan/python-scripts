@@ -1,0 +1,5 @@
+_031_ARN, _032_MemberID, _33_ProcessorID, _DE94, Comment
+05801231212121212,	12407,	13333,	12407, this line is same
+15801233434343434,	12407,	13333,	12407, this line is same
+25801233434343434,	12407,	13333,	12407, this line is different
+some extra lines

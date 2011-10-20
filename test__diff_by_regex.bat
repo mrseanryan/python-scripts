@@ -8,3 +8,9 @@ diff_by_regex.py test_data\diff_by_regex\file_with_regex.txt  test_data\diff_by_
 
 echo test diff a file that cannot be parsed by regex:
 diff_by_regex.py  test_data\diff_by_regex\bad_regex.txt   test_data\diff_by_regex\bad_regex.txt -d
+
+echo test diff a file that is same, only longer:
+diff_by_regex.py  test_data\diff_by_regex\file_to_compare.txt  test_data\diff_by_regex\file_to_compare_longer.txt
+
+echo test diff a file that is same, only shorter: (last line should show as different, because no line ending)
+diff_by_regex.py  test_data\diff_by_regex\file_to_compare_longer.txt  test_data\diff_by_regex\file_to_compare.txt

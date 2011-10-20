@@ -92,6 +92,12 @@ def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 	elif(logVerbosity >= verb):
 		sys.stdout.write(txt)
 
+def lineCount(fileObj):
+	iLines = 0
+	for line in fileObj:
+		iLines = iLines + 1
+	return iLines
+
 ###############################################################
 #compare_files
 def compare_files(fileWithRegex, fileToCompare):
@@ -102,11 +108,14 @@ def compare_files(fileWithRegex, fileToCompare):
 	
 	itRegex = iter(fileWithRegex)
 	itCompare = iter(fileToCompare)
+	bHaveLineInFirstFile = False
 	while True:
 		printOut("line: " + str(lineNum), LOG_DEBUG)
 		try:
+			bHaveLineInFirstFile = False
 			valueRegex = itRegex.next() # in Python 2.x
 			#value = next(itRegex) # in Python 3.x
+			bHaveLineInFirstFile = True
 			
 			if(valueRegex[0] == '#'):
 				continue #skip comment lines
@@ -119,6 +128,10 @@ def compare_files(fileWithRegex, fileToCompare):
 		if(not are_lines_equal(valueRegex, valueCompare, options.disableRegex)):
 			diff_lines.append( (valueRegex, valueCompare, lineNum) );
 		lineNum = lineNum + 1
+	
+	#check are there more lines (the file is same, but longer):
+	if(lineCount(fileToCompare) > lineCount(fileWithRegex)):
+		diff_lines.append( ("", "Second file is longer", lineNum) )
 	
 	return (heading_line, diff_lines)
 
