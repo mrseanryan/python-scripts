@@ -11,10 +11,19 @@ def processLine(line, varToValue):
 		processedLine = processedLine.replace('{' + var + '}', varToValue[var])
 	return processedLine
 
+def processTemplateAndAppend(templateFilePath, varToValue, outputFilepath):
+	processTemplateImpl(templateFilePath, varToValue, outputFilepath, True)
+
 def processTemplate(templateFilePath, varToValue, outputFilepath):
+	processTemplateImpl(templateFilePath, varToValue, outputFilepath, False)
+
+def processTemplateImpl(templateFilePath, varToValue, outputFilepath, bAppend):
 	templateFile = open(templateFilePath, 'r')
 	
-	outputFile = open(outputFilepath, 'w')
+	outFileMode = 'w'
+	if bAppend:
+		outFileMode = 'a'
+	outputFile = open(outputFilepath, outFileMode)
 	
 	for line in templateFile:
 		processedLine = processLine(line, varToValue)

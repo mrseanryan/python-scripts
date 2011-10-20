@@ -41,3 +41,7 @@ templateFilePath = "test_data\\templates\\IRD_calculation.template.sql"
 outputFilepath = "temp\\IRD_calculation.template.processed.sql"
 
 processTemplate(templateFilePath, varToValue, outputFilepath)
+
+outputFilepathAppended = outputFilepath + ".appended"
+processTemplate(templateFilePath, varToValue, outputFilepathAppended)
+processTemplateAndAppend(templateFilePath, varToValue, outputFilepathAppended)
