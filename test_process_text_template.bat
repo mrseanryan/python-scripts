@@ -1,5 +1,7 @@
 SETLOCAL
 
+if not exist temp (mkdir temp)
+
 process_text_template_test.py
 
 REM TODO - diff against known good output
