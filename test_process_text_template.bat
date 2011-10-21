@@ -1,4 +1,4 @@
-REM @ECHO OFF
+@ECHO OFF
 SETLOCAL
 
 SET DIFF_BY_REGEX=diff_by_regex.py
