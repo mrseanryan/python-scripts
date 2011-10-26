@@ -17,20 +17,31 @@ def processTemplateAndAppend(templateFilePath, varToValue, outputFilepath):
 def processTemplate(templateFilePath, varToValue, outputFilepath):
 	processTemplateImpl(templateFilePath, varToValue, outputFilepath, False)
 
-def processTemplateImpl(templateFilePath, varToValue, outputFilepath, bAppend):
+def processTemplateInMemory(templateFilePath, varToValue):
+	processedResult = ""
+	
 	templateFile = open(templateFilePath, 'r')
+	
+	for line in templateFile:
+		processedResult = processedResult + processLine(line, varToValue)
+	templateFile.close()
+	return processedResult
+
+def processTemplateImpl(templateFilePath, varToValue, outputFilepath, bAppend):
+
 	
 	outFileMode = 'w'
 	if bAppend:
 		outFileMode = 'a'
 	outputFile = open(outputFilepath, outFileMode)
 	
-	for line in templateFile:
+	templateResult = processTemplateInMemory(templateFilePath, varToValue)
+	
+	for line in templateResult:
 		processedLine = processLine(line, varToValue)
 		outputFile.write(processedLine)
 		#outputFile.write('\n')
 	
-	templateFile.close()
 	outputFile.close()
 
 # =========== END FUNCTIONS ==============

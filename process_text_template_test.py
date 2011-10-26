@@ -43,5 +43,17 @@ outputFilepath = "temp\\IRD_calculation.template.processed.sql"
 processTemplate(templateFilePath, varToValue, outputFilepath)
 
 outputFilepathAppended = outputFilepath + ".appended"
+
+outputFilepathInMemory = outputFilepath + ".inMemory"
+
+print "Testing processTemplate()"
 processTemplate(templateFilePath, varToValue, outputFilepathAppended)
+
+print "Testing processTemplateAndAppend()"
 processTemplateAndAppend(templateFilePath, varToValue, outputFilepathAppended)
+
+print "Testing processTemplateInMemory()"
+templateResult = processTemplateInMemory(templateFilePath, varToValue)
+templateResultFile = open(outputFilepathInMemory, 'w')
+templateResultFile.write(templateResult)
+templateResultFile.close()
