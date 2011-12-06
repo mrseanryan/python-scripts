@@ -1,16 +1,21 @@
 """
 script to manipulate a square matrix and normalise it
 
-USAGE:  normalise_matrix <matrix data file> <matrix size> [options]
+USAGE:  normalise_matrix <matrix data file A> <matrix size> <operation> [matrix data file B] [options]
+
+where operation is one of:
+norm = normalise A
+subtract = perform A - B
 
 Dependencies:
 Python 2.6 or higher
 
 The options are:
 [-h help]
+[-s save filePath = save new matrix to file path]
 [-t test]
 
-Example: normalise_vector.py out.combined.dat 10
+Example: normalise_vector.py out.combined.dat 10 norm -save combined.norm.dat
 
 """
 
@@ -31,23 +36,43 @@ def usage():
 
 ###############################################################
 #optparse - parse the args
-parser = OptionParser(usage='%prog <matrix data file> <matrix size> [options]')
+parser = OptionParser(usage='%prog <matrix data file> <matrix size> <operation> [matrix data file B] [options]')
 parser.add_option('-t', '--test', dest='testModeOn', action='store_const',
 	 	 	 	const=True, default=False,
 	 	 	 	help='turns on test mode, which does not require a file (default: off)')
 
-matrixFilePath = ''
+parser.add_option("-s", "--save", action="store", type="string",
+                      dest="saveFilePath", help="Save result to file path")
+
+matrixFilePathA = ''
 matrixSize = 0
+matrixFilePathB = ''
+operation = ''
 
 (options, args) = parser.parse_args()
 if(not options.testModeOn):
-	if(len(args) != 2):
-		usage()
-		sys.exit(2)
+	operation = args[2]
+	
+	if operation == 'norm':	
+		if(len(args) != 3):
+			usage()
+			sys.exit(2)
+		else:
+			matrixFilePathA = args[0]
+			matrixSize = int(args[1])
+	elif operation == 'subtract':	
+		if(len(args) != 4):
+			usage()
+			sys.exit(2)
+		else:
+			matrixFilePathA = args[0]
+			matrixSize = int(args[1])
+			matrixFilePathB = args[3]
 	else:
-		matrixFilePath = args[0]
-		matrixSize = int(args[1])
-
+		print 'unknown operation ' + operation
+		usage()
+		sys.exit(3)
+		
 # ================ FUNCTIONS ===============================
 
 def createMatrix(n):
@@ -65,8 +90,7 @@ def getDeterminant(mat, n):
 		topLeftProduct *= mat[i][i]
 		
 	bottomLeftProduct = 1
-	#import pdb
-	#pdb.set_trace()
+
 	for i in xrange(n):
 		bottomLeftProduct *= mat[i][n-i-1]
 
@@ -83,6 +107,7 @@ def getNormalisedMatrix(mat, n):
 	return det
 
 def loadMatrix(n, matrixFilePath):
+
 	delim = ' '
 	mat = createMatrix(n)
 	matrixFile = open(matrixFilePath, 'r')
@@ -98,22 +123,58 @@ def loadMatrix(n, matrixFilePath):
 		iRow = iRow + 1
 	return mat
 
+def saveMatrix(filePath, mat, n):
+	matFile = open(filePath, 'w')
+	for i in xrange(n):
+		line = ''
+		for j in xrange(n):
+			line += str(mat[i][j]) + ' '
+		matFile.write(line)
+		matFile.write('\n')
+
+def subtract(matA, matB, n):
+	matDiff = createMatrix(n)
+	for i in xrange(n):
+		for j in xrange(n):
+			matDiff[i][j] = matA[i][j] - matB[i][j]
+	return matDiff
+
 # =============== MAIN ==========================================
 
 n = matrixSize
 
-mat = None
+#populate the matrix A
+matA = None
 if(options.testModeOn):
-	#populate the matrix
+	print 'test mode - setting operation = norm'
 	n = 3
-	mat = createMatrix(n)
+	matA = createMatrix(n)
+	operation = 'norm'
 else:
-	mat = loadMatrix(n, matrixFilePath)
+	matA = loadMatrix(n, matrixFilePathA)
 
-print 'matrix: '
-print mat
+print 'matrix A: '
+print matA
 
-norm = getNormalisedMatrix(mat, n)
-print 'normalised matrix: '
-print norm
+matResult = createMatrix(n)
 
+if operation == 'norm':
+	norm = getNormalisedMatrix(matA, n)
+	print 'normalised matrix: '
+	print norm
+	matResult= norm
+elif operation == 'subtract':
+	matB = loadMatrix(n, matrixFilePathB)
+	print 'matrix B:'
+	print matB
+	
+	matDiff = subtract(matA, matB, n)
+	print 'matrix A - matrix B = '
+	print matDiff
+	matResult = matDiff
+else:
+	raise Exception('unknown operation - ' + operation)
+
+if options.saveFilePath is not None and len(options.saveFilePath) > 0:
+	print 'saving result to file ' + options.saveFilePath
+	saveMatrix(options.saveFilePath, matResult, n)
