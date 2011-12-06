@@ -51,6 +51,10 @@ operation = ''
 
 (options, args) = parser.parse_args()
 if(not options.testModeOn):
+	if(len(args) < 2):
+		usage()
+		sys.exit(1)
+	
 	operation = args[2]
 	
 	if operation == 'norm':	

@@ -1,6 +1,10 @@
 @ECHO OFF
 
 echo .
+echo USAGE
+normalise_matrix.py
+
+echo .
 echo TEST MODE:
 normalise_matrix.py -t
 
