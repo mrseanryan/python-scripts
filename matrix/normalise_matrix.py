@@ -83,8 +83,20 @@ def getNormalisedMatrix(mat, n):
 	return det
 
 def loadMatrix(n, matrixFilePath):
-	mat = None
-	raise('not impl !')
+	delim = ' '
+	mat = createMatrix(n)
+	matrixFile = open(matrixFilePath, 'r')
+	iRow = 0
+	for line in matrixFile:
+		cells = line.split(delim)
+		iCol = 0
+		for cell in cells:
+			if cell == '\n':
+				continue
+			mat[iRow][iCol] = float(cell)
+			iCol = iCol + 1
+		iRow = iRow + 1
+	return mat
 
 # =============== MAIN ==========================================
 
