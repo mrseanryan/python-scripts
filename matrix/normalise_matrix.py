@@ -4,6 +4,7 @@ script to manipulate a square matrix and normalise it
 USAGE:  normalise_matrix <matrix data file A> <matrix size> <operation> [matrix data file B] [options]
 
 where operation is one of:
+diff = compare 2 matrices - output is a scalar (0 = no diff)
 norm = normalise A
 subtract = perform A - B
 
@@ -27,6 +28,7 @@ Example: normalise_vector.py out.combined.dat 10 norm -save combined.norm.dat
 
 from optparse import OptionParser
 
+import math
 import sys
 
 ###############################################################
@@ -64,7 +66,7 @@ if(not options.testModeOn):
 		else:
 			matrixFilePathA = args[0]
 			matrixSize = int(args[1])
-	elif operation == 'subtract':	
+	elif operation == 'subtract' or operation == 'diff':	
 		if(len(args) != 4):
 			usage()
 			sys.exit(2)
@@ -109,6 +111,14 @@ def getNormalisedMatrix(mat, n):
 		for j in xrange(n):
 			det[i][j] = float(mat[i][j]) / float(divisor)
 	return det
+
+def getScalarDet(matrix, n):
+	#treat the matrix as a vector, and get sqrt( sum of squares )
+	sumOfSquares = 0
+	for row in matrix:
+		for cell in row:
+			sumOfSquares += cell * cell
+	return math.sqrt(sumOfSquares)
 
 def loadMatrix(n, matrixFilePath):
 
@@ -176,6 +186,17 @@ elif operation == 'subtract':
 	print 'matrix A - matrix B = '
 	print matDiff
 	matResult = matDiff
+elif operation == 'diff':
+	matB = loadMatrix(n, matrixFilePathB)
+	print 'matrix B:'
+	print matB
+	
+	matDiff = subtract(matA, matB, n)
+	print 'matrix A - matrix B = '
+	print matDiff
+	scalarDetA = getScalarDet(matA, n)
+	scalarDetDiff = getScalarDet(matDiff, n)
+	print '|A-B| / |A| = ' + str(scalarDetA / scalarDetDiff)
 else:
 	raise Exception('unknown operation - ' + operation)
 
