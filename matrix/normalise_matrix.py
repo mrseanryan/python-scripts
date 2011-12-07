@@ -117,7 +117,7 @@ def getScalarDet(matrix, n):
 	sumOfSquares = 0
 	for row in matrix:
 		for cell in row:
-			sumOfSquares += cell * cell
+			sumOfSquares = sumOfSquares + (cell * cell)
 	return math.sqrt(sumOfSquares)
 
 def loadMatrix(n, matrixFilePath):
@@ -196,7 +196,7 @@ elif operation == 'diff':
 	print matDiff
 	scalarDetA = getScalarDet(matA, n)
 	scalarDetDiff = getScalarDet(matDiff, n)
-	print '|A-B| / |A| = ' + str(scalarDetA / scalarDetDiff)
+	print '|A-B| / |A| = ' + str(scalarDetDiff / scalarDetA)
 else:
 	raise Exception('unknown operation - ' + operation)
 

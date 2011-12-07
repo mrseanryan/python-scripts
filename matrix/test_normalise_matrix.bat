@@ -27,5 +27,12 @@ echo LOAD DIFF MATRIX FILE and NORMALISE:
 normalise_matrix.py temp\matrix.diff.dat 3 norm
 
 echo .
-echo DIFF 2 MATRIX FILES out to SCALAR:
-normalise_matrix.py temp\matrix.diff.dat 3 diff test_data\small_matrix.2.dat
+echo DIFF 2 MATRIX FILES out to SCALAR:   (large difference)
+normalise_matrix.py test_data\small_matrix.dat 3 diff test_data\small_matrix.2.dat
+
+echo .
+echo DIFF 2 MATRIX FILES out to SCALAR: (small difference)
+normalise_matrix.py test_data\small_matrix.dat 3 diff test_data\small_matrix.3.dat
+echo .
+echo DIFF 2 MATRIX FILES out to SCALAR: (NO difference)
+normalise_matrix.py test_data\small_matrix.dat 3 diff test_data\small_matrix.dat
