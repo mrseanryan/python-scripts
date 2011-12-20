@@ -1,9 +1,10 @@
 """
  operate_on_each_file.py
  Author: Sean Ryan
- Version: 1.0
+ Version: 1.1
 
 Script to perform an operation on each file in a directory.
+The files are processed in order of modified timestamp, starting with the oldest file.
 
 The operation is another script, that inputs and outputs to the same file paths each time.
  
@@ -25,6 +26,7 @@ operate_on_each_file.py -s "E:\Shared\PRNs\CWA__changes_2011\issues\Angus_CWA_Is
 """
 ###############################################################
 
+import datetime
 import getopt
 import os
 from os.path import exists, join
@@ -72,72 +74,90 @@ def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 ###############################################################
 #ask_ok() - prompts the user to continue
 def ask_ok(prompt, retries=3, complaint='Yes or no, please!'):
-    if yesToAllPrompts:
-        printOut (prompt + " - (yes to all prompts)")
-        return True
-    while True:
-        ok = raw_input(prompt)
-        if ok in ('y', 'ye', 'yes'):
-            return True
-        if ok in ('n', 'no', 'nop', 'nope'):
-            return False
-        retries = retries - 1
-        if retries < 0:
-            raise IOError('refusenik user')
-        print complaint        
+	if yesToAllPrompts:
+		printOut (prompt + " - (yes to all prompts)")
+		return True
+	while True:
+		ok = raw_input(prompt)
+		if ok in ('y', 'ye', 'yes'):
+			return True
+		if ok in ('n', 'no', 'nop', 'nope'):
+			return False
+		retries = retries - 1
+		if retries < 0:
+			raise IOError('refusenik user')
+		print complaint		
 
 ###############################################################
 #usage() - prints out the usage text, from the top of this file :-)
 def usage():
-    print __doc__
+	print __doc__
+
+###############################################################
+# Function to get the datetime on which the given file was last modified.
+def getFileModTime(filePath):
+	tm = os.path.getmtime(filePath)
+	return datetime.datetime.fromtimestamp(tm)
+
+def getFileName(filePath):
+	return os.path.basename(filePath)
+
+###############################################################
+class FileDetails:
+	"""holds details about a file, including modified time"""
+	def __init__(self, filePath):
+		self.dateTimeStamp = getFileModTime(filePath)
+		self.fileName = getFileName(filePath)
+		self.filePath = filePath
+		self.fileSize = os.path.getsize(filePath)
 
 ###############################################################
 #main() - main program entry point
 def main(argv):
-    global extensions
-    global logVerbosity
-    global sourceDirPath
-    global targetScriptPath
-    global inputFilePath
-    global outputFilePath
-    global outputDirPath
-    global yesToAllPrompts
-    try:
-        opts, args = getopt.getopt(argv, "he:i:f:s:t:o:wy", ["help", "extensions=", "input=", "file=", "source=", "target=", "output=", "warnings", "yes"])
-    except getopt.GetoptError:
-        usage()
-        sys.exit(2)
-    if(len(opts) == 0):
-        usage()
-        sys.exit()
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            usage()
-            sys.exit()
-        #elif opt == '-b':
-        #    global _debug
-        #    _debug = 1
-        elif opt in ("-e", "--extensions"):
-            extensions = arg
-        elif opt in ("-i", "--input"):
-            inputFilePath = arg
-        elif opt in ("-f", "--file"):
-            outputFilePath = arg
-        elif opt in ("-s", "--source"):
-            sourceDirPath = arg
-        elif opt in ("-t", "--target"):
-            targetScriptPath = arg
-        elif opt in ("-o", "--output"):
-            #import pdb
-            #pdb.set_trace()
-            outputDirPath = arg
-        elif opt in ("-w", "--warnings"):
-            logVerbosity = LOG_WARNINGS
-        elif opt in ("-y", "--yes"):
-            yesToAllPrompts = True
+	global extensions
+	global logVerbosity
+	global sourceDirPath
+	global targetScriptPath
+	global inputFilePath
+	global outputFilePath
+	global outputDirPath
+	global yesToAllPrompts
+	try:
+		opts, args = getopt.getopt(argv, "he:i:f:s:t:o:wy", ["help", "extensions=", "input=", "file=", "source=", "target=", "output=", "warnings", "yes"])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(2)
+	if(len(opts) == 0):
+		usage()
+		sys.exit()
+	for opt, arg in opts:
+		if opt in ("-h", "--help"):
+			usage()
+			sys.exit()
+		#elif opt == '-b':
+		#	global _debug
+		#	_debug = 1
+		elif opt in ("-e", "--extensions"):
+			extensions = arg
+		elif opt in ("-i", "--input"):
+			inputFilePath = arg
+		elif opt in ("-f", "--file"):
+			outputFilePath = arg
+		elif opt in ("-s", "--source"):
+			sourceDirPath = arg
+		elif opt in ("-t", "--target"):
+			targetScriptPath = arg
+		elif opt in ("-o", "--output"):
+			#import pdb
+			#pdb.set_trace()
+			outputDirPath = arg
+		elif opt in ("-w", "--warnings"):
+			logVerbosity = LOG_WARNINGS
+		elif opt in ("-y", "--yes"):
+			yesToAllPrompts = True
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+	main(sys.argv[1:])
 
 ###############################################################
 #copy the args to our variables
@@ -157,7 +177,7 @@ print  "outputDirPath: " + outputDirPath + "\n"
 
 print "extensions: "
 for ext in extensions_list:
-    print ext + " "
+	print ext + " "
 
 print ""
 
@@ -173,12 +193,12 @@ else:
 print ""
 
 if ask_ok("Do you wish to continue ? (Y/N)"):
-    #do nothing
-    print "ok"
+	#do nothing
+	print "ok"
 else:
-    print "Exiting"
-    sys.exit()
-    
+	print "Exiting"
+	sys.exit()
+	
 print ""
 
 print "Processing files ...\n"
@@ -189,7 +209,7 @@ numWarnings = 0
 
 # Source Files paths will be cached in this var:
 # map from filename -> filepath
-sourceFilePaths = dict()
+sourceFilePaths = list()
 
 ###############################################################
 #IsFileExtensionOk() - does this filename match the list of extensions given by user
@@ -204,29 +224,30 @@ def IsFileExtensionOk(filename):
 
 ###############################################################
 #search_files - recursively search the given directory, and populate the map with files that match our list of extensions
-def search_files(dir, result_dict):
-    basedir = dir
-    #print "Files in ", dir, ": "
-    subdirlist = []
-    for filename in os.listdir(dir):
-        if os.path.isfile(os.path.join(basedir,filename)):
-            if IsFileExtensionOk(filename):
-                printOut ("File found: " + filename)
-                setOfPaths = set()
-                if (filename in result_dict):
-                        setOfPaths = result_dict[filename]
-                else:
-                        result_dict[filename] = setOfPaths
-                setOfPaths.add( os.path.join(basedir, filename) )
-        else:
-            subdirlist.append(os.path.join(basedir, filename))
-    for subdir in subdirlist:
-        search_files(subdir, result_dict)
+def search_files(dir, result_list):
+	basedir = dir
+	#print "Files in ", dir, ": "
+	subdirlist = []
+	for filename in os.listdir(dir):
+		if os.path.isfile(os.path.join(basedir,filename)):
+			if IsFileExtensionOk(filename):
+				printOut ("File found: " + filename)
+				fileDetails = FileDetails( os.path.join(basedir, filename) )
+				result_list.append(fileDetails)
+		else:
+			subdirlist.append(os.path.join(basedir, filename))
+	for subdir in subdirlist:
+		search_files(subdir, result_list)
 
 ###############################################################
-#search for source & target files, that match the extensions given by user
+#search for source files, that match the extensions given by user
 printOut ("Source files:" + "\n" + "-----------------")
 search_files(sourceDirPath, sourceFilePaths)
+
+#sort the archives, starting with the newest:
+sourceFilePaths = sorted(sourceFilePaths, key=lambda fileDetails: fileDetails.dateTimeStamp)
+#reverse the list, so that it starts with the oldest:
+#sourceFilePaths.reverse()
 
 printOut ("")
 
@@ -235,14 +256,6 @@ numSourceFiles = len(sourceFilePaths)
 printOut ("Found " + str(numSourceFiles) + " source files.")
 
 printOut ("")
-
-###############################################################
-# make sorted list of source filenames,
-# just so the user can see the progress:
-sortedSourceFileNames = list()
-for fileName in sourceFilePaths.iterkeys():
-    sortedSourceFileNames.append(fileName)
-sortedSourceFileNames.sort()
 
 ################################################################
 # functions
@@ -274,17 +287,17 @@ def createOutputFilePath(fileName, outputDirPath):
 # we then copy the output file to the output dir
 
 numFilesProcessed = 0
-for fileName in sortedSourceFileNames:
-	srcFilePathSet = sourceFilePaths[fileName]
+for fileDetails in sourceFilePaths:
+	srcFilePath = fileDetails.filePath
 	
-	for srcFilePath in srcFilePathSet:
-		printOut("Processing file " + os.path.basename(srcFilePath))
-		copyFile(srcFilePath, inputFilePath)
-		runOperation(targetScriptPath)
-		uniqueOutputFilePath = createOutputFilePath(fileName, outputDirPath)
-		copyFile(outputFilePath, uniqueOutputFilePath)
-		numFilesProcessed = numFilesProcessed + 1
-		printOut ( "\r" + str((numFilesProcessed * 100) / numSourceFiles) + "%", LOG_WARNINGS, False ) #show some progress, even if low verbosity
+	printOut("Processing file " + os.path.basename(srcFilePath))
+	copyFile(srcFilePath, inputFilePath)
+	runOperation(targetScriptPath)
+	fileName = getFileName(srcFilePath)
+	uniqueOutputFilePath = createOutputFilePath(fileName, outputDirPath)
+	copyFile(outputFilePath, uniqueOutputFilePath)
+	numFilesProcessed = numFilesProcessed + 1
+	printOut ( "\r" + str((numFilesProcessed * 100) / numSourceFiles) + "%", LOG_WARNINGS, False ) #show some progress, even if low verbosity
 
 ###############################################################
 #print summary of results		
