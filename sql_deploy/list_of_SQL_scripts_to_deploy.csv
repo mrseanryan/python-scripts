@@ -1,0 +1,24 @@
+# This file lists the SQL scripts that will be auto-deployed.
+#Backups of the original database object will be created.
+#
+#note: currently only 'SP' items are backed up.
+#
+#Amend of pending PDF fix:
+SP,dbo.spLicenceDocLoader_ReturnOriginalCopyAuto.StoredProcedure.sql
+SP,dbo.spLicenceDocRenewal_Email.StoredProcedure.sql
+SP,dbo.spLicenceDocRenewal_SetEntries.StoredProcedure.sql
+SP,dbo.spLicenceDocumentation.StoredProcedure.sql
+SP,dbo.spLicenceDocumentation_FileNameOnly.StoredProcedure.sql
+SP,dbo.spLicenceDocLoader_ReturnOriginalLicenceAuto.StoredProcedure.sql
+
+#Amateur Radio -> PDF:
+#SP,dbo.BADspName.StoredProcedure.sql
+SP,dbo.spAmateurExam_Licence_FindOlderReports.StoredProcedure.sql
+SP,dbo.spAmateurExam_Licence_Report.StoredProcedure.sql
+SP,dbo.spApplications_CreateElectronic_AmateurExam.StoredProcedure.sql
+SP,dbo.spLicenceDocumentation_LocateByLNum.StoredProcedure.sql
+SP,dbo.spLicenceDocLoader_IsLicenceTypeSigned.StoredProcedure.sql
+SP,dbo.spAmateurExam_Licence.StoredProcedure.sql
+SP,spLicenceDocumentation_GetPDFfilenameSuffix.StoredProcedure.sql
+#can only run this once: TABLE_POP,tblLicenceDocumentation_Location_populate.sql
+TABLE_ALTER,tblAmateurExam_alter.sql
