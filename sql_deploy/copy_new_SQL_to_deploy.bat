@@ -18,6 +18,13 @@ IF NOT EXIST %DEST_DIR% (MKDIR %DEST_DIR%)
 
 del /Q %DEST_DIR%\*.*
 
+SET DEST_DIR_DATABASE_SCRIPTS=%DEST_DIR%\database_scripts
+IF NOT EXIST %DEST_DIR_DATABASE_SCRIPTS% (MKDIR %DEST_DIR_DATABASE_SCRIPTS%)
+
+SET DEST_DIR_SCRIPTS=%DEST_DIR%\scripts
+IF NOT EXIST %DEST_DIR_SCRIPTS% (MKDIR %DEST_DIR_SCRIPTS%)
+
+
 REM TODO make a nice py script to read from a CSV file instead
 
 SET SCRIPT_SRC=%PATH_TO_COMREG%\LING\sql\scripts
@@ -25,19 +32,23 @@ SET SCRIPT_SRC_SQL=%PATH_TO_COMREG%\LING\sql\database_scripts
 
 echo .
 echo Copying deploy scripts ...
-xcopy /Y		%SCRIPT_SRC%\list_of_SQL_scripts_to_deploy.csv					%DEST_DIR%\
+xcopy /Y		%SCRIPT_SRC%\list_of_SQL_scripts_to_deploy.csv					%DEST_DIR_SCRIPTS%\
 IF %ERRORLEVEL% NEQ 0 (GOTO ERROR_LABEL)
 
-xcopy /Y		%SCRIPT_SRC%\*.py													%DEST_DIR%\
+xcopy /Y		%SCRIPT_SRC%\*.py													%DEST_DIR_SCRIPTS%\
 IF %ERRORLEVEL% NEQ 0 (GOTO ERROR_LABEL)
 
-xcopy /Y		%SCRIPT_SRC%\run_deploySQL.bat											%DEST_DIR%\
+xcopy /Y		%SCRIPT_SRC%\run_deploySQL.bat											%DEST_DIR_SCRIPTS%\
 IF %ERRORLEVEL% NEQ 0 (GOTO ERROR_LABEL)
 
 echo .
 echo Copying SQL scripts ...
 
-CopySQLtoDeploy.py list_of_SQL_scripts_to_deploy.csv          %SCRIPT_SRC_SQL%\     %DEST_DIR%\
+pushd %PATH_TO_COMREG%\LING\sql\scripts
+IF %ERRORLEVEL% NEQ 0 (GOTO ERROR_LABEL)
+CopySQLtoDeploy.py list_of_SQL_scripts_to_deploy.csv          %SCRIPT_SRC_SQL%\     %DEST_DIR_DATABASE_SCRIPTS%\
+IF %ERRORLEVEL% NEQ 0 (GOTO ERROR_LABEL)
+popd
 
 REM *** ADD YOUR MODIFIED SQL SCRIPTS TO THE CSV FILE ***
 

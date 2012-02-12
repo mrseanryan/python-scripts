@@ -86,7 +86,7 @@ def parseSqlScriptName(dbObjectType, sqlScriptName):
 #this function prints out, according to user's options for verbosity
 def printOut(txt, verb = LOG_NORMAL, bNewLine = True):
 	global logVerbosity
-	txt = "> " + txt #prefix to make it easier to grep our output from 7zip's
+	#txt = "> " + txt #prefix to make it easier to grep our output from 7zip's
 	if(bNewLine):
 		txt = txt + "\n"
 	if verb == LOG_WARNINGS_ONLY:

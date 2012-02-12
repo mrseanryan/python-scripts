@@ -1,7 +1,33 @@
-# This file lists the SQL scripts that will be auto-deployed.
+# This file lists the SQL scripts that will be auto-deployed by the script DeploySQL.py.
 #Backups of the original database object will be created.
 #
-#note: currently only 'SP' items are backed up.
+#
+#Notes
+#=====
+#note: currently only 'SP' items are backed up by the deploy script, before executing the SQL scripts.
+#
+#Comments:
+#=========
+#Comments can be written on a line that starts with a '#' symbol.
+#
+#Columns
+#=======
+#Columns are: Database object type, SQL script filename
+#
+#Column: Database object type:
+#================
+#SP - an EXISTING stored procedure.  The script must be located in the folder ..\database_scripts\StoredProcedures
+#SP_NEW - a NEW stored procedure.  The script must be located in the folder ..\database_scripts\StoredProcedures
+#TABLE_POP - a SQL script which populates records into a table.  The script must be located in the folder ..\database_scripts\tables_modified
+#TABLE_ALTER - a SQL script which alters the structure of an existing table.  The script must be located in the folder ..\database_scripts\tables_modified
+#
+#Column: SQL script filename:
+#===============
+#For SP and SP_NEW items, the name of the SQL script MUST match the name of the stored procedure, with optional suffix of '.sql' or else '.StoredProdedure.sql'.
+#
+#=================
+#SQL Scripts to deploy
+#=================
 #
 #Amend of pending PDF fix:
 SP,dbo.spLicenceDocLoader_ReturnOriginalCopyAuto.StoredProcedure.sql

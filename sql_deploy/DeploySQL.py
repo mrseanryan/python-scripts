@@ -5,13 +5,19 @@ This script is used to deploy multiple SQL scripts against a database.
 
 The database objects are first backed up, before executing the new scripts.
 
-USAGE:		DeploySQL.py	<SQL Server>	<Database name>	<SQL user>	<SQL password>	<listfile of SQL scripts>		<output file of original database objects>	<path to directory containing NEW SQL scripts> <path to output file for new SQL script results> <path to sqlcmd.exe directory>	[OPTIONS]
+USAGE:	DeploySQL.py [OPTIONS] <SQL Server> <Database name> <SQL user> <listfile of SQL scripts> <output file of original database objects> <path to directory containing NEW SQL scripts> <path to output file for new SQL script results> <path to sqlcmd.exe directory>
+
+OPTIONS:
+
+	-d -dummyrun		Run in 'dummy run' mode, so no changes are made to the database.
+	-h -help		Show this help message.
+	-w -warnings		Show warnings only (non-verbose output)
 """
 
 #Dependencies:
 #
 #Python 2.7.x
-
+#pywin32 - http://sourceforge.net/projects/pywin32/
 
 
 ###############################################################
@@ -23,10 +29,12 @@ USAGE:		DeploySQL.py	<SQL Server>	<Database name>	<SQL user>	<SQL password>	<lis
 ###############################################################
 
 import getopt
+import getpass
 import re
 import os
 import shutil
 import subprocess
+import win32api
 
 from string import split
 
@@ -45,7 +53,9 @@ origOutputFilepath = ""
 pathToNewSqlDir = ""
 newOutputFilepath = ""
 
-# rem unfortunately, need to use short file paths.  Hint:  to find the short file path, from cmd line, use:				 dir "path to my directory" /X
+IsDummyRun = False
+
+# unfortunately, need to use short file paths, to execute a process.  Using pywin32 to get around this, by converting path to short paths.
 sqlCmd = "sqlcmd.exe"
 #sqlCmdDirPath = "c:\Progra~1\MI6841~1\90\Tools\Binn\\"
 sqlCmdDirPath = ""
@@ -61,33 +71,40 @@ def usage():
 #args = <SQL Server>	<SQL user>	<SQL password>	<listfile of SQL scripts>		<output file of original database objects>
 def main(argv):
 	
-	global sqlServerInstance, sqlDbName, sqlUser, sqlPassword, sqlScriptListfilePath, origOutputFilepath, pathToNewSqlDir, newOutputFilepath, sqlCmdDirPath
+	global sqlServerInstance, sqlDbName, sqlUser, sqlPassword, sqlScriptListfilePath, origOutputFilepath, pathToNewSqlDir, newOutputFilepath, sqlCmdDirPath, IsDummyRun
 
 	try:
-		opts, args = getopt.getopt(argv, "hw", ["help", "warnings"])
+		opts, args = getopt.getopt(argv, "dhw", ["dummyrun", "help", "warnings"])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(2)
-	if(len(args) != 9):
+	if(len(args) != 8):
 		usage()
 		sys.exit(3)
 	#assign the args to variables:
 	sqlServerInstance = args[0]
 	sqlDbName = args[1]
 	sqlUser = args[2]
-	sqlPassword = args[3]
-	sqlScriptListfilePath = args[4]
-	origOutputFilepath = args[5]
-	pathToNewSqlDir = args[6]
-	newOutputFilepath = args[7]
-	sqlCmdDirPath = args[8]
+	sqlScriptListfilePath = args[3]
+	origOutputFilepath = args[4]
+	pathToNewSqlDir = args[5]
+	newOutputFilepath = args[6]
+	sqlCmdDirPath = args[7]
+	
+	#convert sqlCmdDirPath to short file names:
+	sqlCmdDirPath = win32api.GetShortPathName(sqlCmdDirPath)
 	
 	for opt, arg in opts:
-		if opt in ("-h", "--help"):
+		if opt in ("-d", "--dummyrun"):
+			IsDummyRun = True
+		elif opt in ("-h", "--help"):
 			usage()
 			sys.exit()
 		elif opt in ("-w", "--warnings"):
 			setLogVerbosity(LOG_WARNINGS)
+
+	prompt = "Please enter the password for server: " + sqlServerInstance + " database: " + sqlDbName + " user: " + sqlUser + " "
+	sqlPassword = getpass.getpass(prompt)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
@@ -135,6 +152,7 @@ def backupOriginalObjects(sqlScriptListfilePath, outputFilepath):
 
 def execSqlScript(pathToSqlScript, outputFilepath):
 	global sqlServerInstance, sqlUser, sqlPassword, sqlCmd, sqlCmdDirPath
+	
 	#sqlcmd.exe - ref:   http://msdn.microsoft.com/en-us/library/ms162773.aspx
 	
 	#sqlcmd -S (local) -U <user> -P <password>   -i dumpDatabaseObject.sql  -o originalSQL.sql
@@ -166,13 +184,19 @@ def getTempDir():
 	return os.environ['TEMP'] + '\\'
 
 def outputSummary(dbObjects):
+	global IsDummyRun, origOutputFilepath
+	printOut("")
+	printOut("Deploy SQL results:")
 	printOut( str(getNumWarnings()) + " warnings occurred" )
 	printOut( str(len(dbObjects)) + " scripts were processed")
+	printOut( "Original database objects were backed up to " + origOutputFilepath)
+	if(IsDummyRun):
+		printOut("Dummy run - no database changes were made")
 	#TODO - add more summary info
 
 def runExe(targetScriptName, targetScriptDirPath, args):
 	scriptWorkingDir = targetScriptDirPath #os.path.dirname(targetScriptPath)
-	toExec = targetScriptDirPath + targetScriptName + " " + args
+	toExec = os.path.join(targetScriptDirPath, targetScriptName) + " " + args
 	printOut("Running exe " + toExec)
 	printOut("working dir = " + scriptWorkingDir)
 	process = subprocess.Popen(toExec, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd = scriptWorkingDir)
@@ -184,14 +208,17 @@ def runExe(targetScriptName, targetScriptDirPath, args):
 		raise Exception("Process returned error code:" + str(process.returncode))
 
 def runNewSQLscripts(dbObjects, pathToNewSqlDir, outputFilepath):
-	global sqlDbName, dictDbObjectTypeToSubDir
+	global sqlDbName, dictDbObjectTypeToSubDir, IsDummyRun
 	for dbObject in dbObjects:
 		#we need to specify the database name, so we copy the script, and prefix a 'use' clause
 		sqlScriptCopy = getTempDir() + dbObject.sqlScriptName
 		
-		printOut("Executing SQL script " + dbObject.sqlScriptName)
+		if IsDummyRun:
+			printOut("[dummy run] - not executing SQL script " + dbObject.sqlScriptName)
+		else:
+			printOut("Executing SQL script " + dbObject.sqlScriptName)
 		subDir = dictDbObjectTypeToSubDir[dbObject.dbObjectType]
-		pathToSqlScript = pathToNewSqlDir + subDir + dbObject.sqlScriptName
+		pathToSqlScript = os.path.join( os.path.join(pathToNewSqlDir, subDir), dbObject.sqlScriptName)
 		
 		#add the 'use' clause:
 		sqlOrigFile = open(pathToSqlScript, 'r')
@@ -200,14 +227,25 @@ def runNewSQLscripts(dbObjects, pathToNewSqlDir, outputFilepath):
 		sqlCopyFile.write('use ' + sqlDbName + getEndline())
 		sqlCopyFile.write(getEndline())
 
-		#now just append the rest of the original file:
+		#now just append the rest of the original file: (with replacements)
+		#we make some replacements, to help manage whether SP is CREATE or ALTER, by setting SP or SP_NEW in the listfile:
+		dictFindToReplace = dict()
+		if(dbObject.dbObjectType == "SP"):
+			dictFindToReplace["CREATE PROCEDURE"] = "ALTER PROCEDURE"
+		elif(dbObject.dbObjectType == "SP_NEW"):
+			dictFindToReplace["ALTER PROCEDURE"] = "CREATE PROCEDURE"
+		
 		for origLine in sqlOrigFile:
+			for find in dictFindToReplace.iterkeys():
+				origLine = origLine.replace(find, dictFindToReplace[find])
 			sqlCopyFile.write(origLine)
 		
 		sqlOrigFile.close()
 		sqlCopyFile.close()
-		#exec the copy of the original SQL script:
-		execSqlScript(sqlScriptCopy, outputFilepath)
+		
+		if not IsDummyRun:
+			#exec the copy of the original SQL script:
+			execSqlScript(sqlScriptCopy, outputFilepath)
 
 		
 def validateArgs(sqlScriptListfilePath, origOutputFilepath):
