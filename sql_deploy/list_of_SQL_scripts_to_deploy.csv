@@ -12,7 +12,14 @@
 #
 #Columns
 #=======
-#Columns are: Database object type, SQL script filename
+#Columns are: 
+#Database version, Database object type, SQL script filename
+#
+#Column: Database version:
+#================
+#This is the database version at which this line was introduced.
+#This line in the file will ONLY be run on databases that have a version OLDER than this line.  
+#So, each line is only run ONCE on each database (unless an error occurs during sql deploy).
 #
 #Column: Database object type:
 #================
@@ -20,6 +27,7 @@
 #SP_NEW - a NEW stored procedure.  The script must be located in the folder ..\database_scripts\StoredProcedures
 #TABLE_POP - a SQL script which populates records into a table.  The script must be located in the folder ..\database_scripts\tables_modified
 #TABLE_ALTER - a SQL script which alters the structure of an existing table.  The script must be located in the folder ..\database_scripts\tables_modified
+#TABLE_CREATE - a SQL script which creates a new table.  The script must be located in the folder ..\database_scripts\tables
 #
 #Column: SQL script filename:
 #===============
@@ -30,21 +38,43 @@
 #=================
 #
 #Amend of pending PDF fix:
-SP,dbo.spLicenceDocLoader_ReturnOriginalCopyAuto.StoredProcedure.sql
-SP,dbo.spLicenceDocRenewal_Email.StoredProcedure.sql
-SP,dbo.spLicenceDocRenewal_SetEntries.StoredProcedure.sql
-SP,dbo.spLicenceDocumentation.StoredProcedure.sql
-SP,dbo.spLicenceDocumentation_FileNameOnly.StoredProcedure.sql
-SP,dbo.spLicenceDocLoader_ReturnOriginalLicenceAuto.StoredProcedure.sql
+03000400,SP,dbo.spLicenceDocLoader_ReturnOriginalCopyAuto.StoredProcedure.sql
+03000400,SP,dbo.spLicenceDocRenewal_Email.StoredProcedure.sql
+03000400,SP,dbo.spLicenceDocRenewal_SetEntries.StoredProcedure.sql
+03000400,SP,dbo.spLicenceDocumentation.StoredProcedure.sql
+03000400,SP,dbo.spLicenceDocumentation_FileNameOnly.StoredProcedure.sql
+03000400,SP,dbo.spLicenceDocLoader_ReturnOriginalLicenceAuto.StoredProcedure.sql
 
-#Amateur Radio -> PDF:
+#Amateur Exam -> PDF:
 #SP,dbo.BADspName.StoredProcedure.sql
-SP,dbo.spAmateurExam_Licence_FindOlderReports.StoredProcedure.sql
-SP,dbo.spAmateurExam_Licence_Report.StoredProcedure.sql
-SP,dbo.spApplications_CreateElectronic_AmateurExam.StoredProcedure.sql
-SP,dbo.spLicenceDocumentation_LocateByLNum.StoredProcedure.sql
-SP,dbo.spLicenceDocLoader_IsLicenceTypeSigned.StoredProcedure.sql
-SP,dbo.spAmateurExam_Licence.StoredProcedure.sql
-SP,spLicenceDocumentation_GetPDFfilenameSuffix.StoredProcedure.sql
-#can only run this once: TABLE_POP,tblLicenceDocumentation_Location_populate.sql
-TABLE_ALTER,tblAmateurExam_alter.sql
+03000701,SP_NEW,dbo.spAmateurExam_Licence_FindOlderReports.StoredProcedure.sql
+03000701,SP_NEW,dbo.spAmateurExam_Licence_Report.StoredProcedure.sql
+03000400,SP,dbo.spApplications_CreateElectronic_AmateurExam.StoredProcedure.sql
+03000400,SP,dbo.spLicenceDocumentation_LocateByLNum.StoredProcedure.sql
+03000701,SP_NEW,dbo.spLicenceDocLoader_IsLicenceTypeSigned.StoredProcedure.sql
+03000400,SP,dbo.spAmateurExam_Licence.StoredProcedure.sql
+03000701,SP_NEW,spLicenceDocumentation_GetPDFfilenameSuffix.StoredProcedure.sql
+03000701,TABLE_POP,tblLicenceDocumentation_Location_populate.sql
+03000701,TABLE_ALTER,tblAmateurExam_alter.sql
+
+#Amateur Radio -> PDF
+#was SP_NEW:
+03000702,SP,dbo.spAmateurRadio_Licence_Report.StoredProcedure.sql
+03000702,SP,dbo.spAmateurExam_Licence_FindOlderReports.StoredProcedure.sql
+03000702,TABLE_CREATE,dbo.tblLicenceDocumentation_ComRegContact.Table.sql
+03000702,SP_NEW,dbo.spLicenceDocumentation_GetComRegContact.StoredProcedure.sql
+03000702,TABLE_POP,tblLicenceDocumentation_ComRegContact_populate.sql
+#BEGIN changes to switch on PDF production for ER:
+03000702,SP,dbo.spLicenceDocLoader_IsLicenceTypeSigned.StoredProcedure.sql
+03000702,SP,dbo.spLicenceDocRenewal_SetEntries.StoredProcedure.sql
+#db in ComReg already has ER entry for this table - 
+#03000702,TABLE_POP,tblLicenceDocumentation_Location_populate.sql
+#END changes to switch on PDF production for ER
+#BEGIN changes for PDFbackfill->LetterDate
+03000702,SP,dbo.spAmateurExam_Licence.StoredProcedure.sql
+03000702,SP,dbo.spAmateurExam_Licence_Report.StoredProcedure.sql
+03000702,SP,dbo.spAmateurRadio_Licence.StoredProcedure.sql
+03000702,SP,dbo.spLicenceDocumentation.StoredProcedure.sql
+03000702,SP,dbo.spLicenceDocumentation_FileNameOnly.StoredProcedure.sql
+#END changes for PDFbackfill->LetterDate
+#SP,spAmateurRadio_LicenceFrequencies.StoredProcedure.sql

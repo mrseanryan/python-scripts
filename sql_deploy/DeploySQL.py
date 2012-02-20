@@ -18,12 +18,12 @@ OPTIONS:
 #
 #Python 2.7.x
 #pywin32 - http://sourceforge.net/projects/pywin32/
-
+#pyodbc - http://code.google.com/p/pyodbc/downloads/list
 
 ###############################################################
 #TODO
 #
-# cleanup on fail: drop any SP_NEW stored procedures
+# cleanup on fail: use TRANS in SQL ?
 # rename original SQL file, if it already exists (to a new unique name) 
 #
 ###############################################################
@@ -32,6 +32,7 @@ import getopt
 import getpass
 import re
 import os
+import pyodbc
 import shutil
 import subprocess
 import win32api
@@ -118,7 +119,7 @@ def createSqlDumpScript(dbObjects, pathToSqlDumpScript):
 		os.remove(pathToSqlDumpScript)
 	sqlDumpScriptFile = open(pathToSqlDumpScript, 'w+')
 	sqlDumpScriptFile.write('use ' + sqlDbName + getEndline())
-	sqlDumpScriptFile.write(getEndline())
+	sqlDumpScriptFile.write(getEndline() + "GO" + getEndline()) # need a GO before any CREATE/ALTER PROCEDURE
 	sqlDumpScriptFile.write("declare @currentObjectName varchar(200)" + getEndline())
 	sqlDumpScriptFile.write("select @currentObjectName = 'unknown'" + getEndline())
 	sqlDumpScriptFile.write(getEndline())
@@ -150,6 +151,18 @@ def backupOriginalObjects(sqlScriptListfilePath, outputFilepath):
 	execSqlScript(pathToSqlDumpScript, outputFilepath)
 	return dbObjects
 
+def createConnection():
+	global sqlServerInstance, sqlDbName, sqlUser, sqlPassword
+	connStr = ( r'DRIVER={SQL Server};SERVER=' +
+	sqlServerInstance + ';DATABASE=' + sqlDbName + ';' +
+	'Uid=' + sqlUser + ";Pwd=" + sqlPassword + ";"    )
+	conn = pyodbc.connect(connStr)
+	return conn
+	
+def createCursor(dbConnection):
+	cursor = dbConnection.cursor()
+	return cursor
+	
 def execSqlScript(pathToSqlScript, outputFilepath):
 	global sqlServerInstance, sqlUser, sqlPassword, sqlCmd, sqlCmdDirPath
 	
@@ -161,9 +174,34 @@ def execSqlScript(pathToSqlScript, outputFilepath):
 	args = "-S " + sqlServerInstance + " -U " + sqlUser + " -P " + sqlPassword + " -i " + pathToSqlScript + " -o " + outputFilepath + " -r 0 -b -m -1"    #-b is to exit on SQL error
 	runExe(sqlCmd, sqlCmdDirPath, args)
 
+def getCurrentDatabaseVersion(dbConn):
+	dbVersion = 00000000
+	
+	cursor = createCursor(dbConn)
+	cursor.execute("exec spDatabaseVersion_GetVersion")
+	
+	#now perform a SELECT to get the database version:
+	for row in cursor:
+		dbVersion = row.DbVersion
+	
+	cursor.close()
+	return dbVersion
+	
 def getEndline():
 	return "\r\n" #OK for Windows
 
+def getHighestVersion(dbObjects):
+	highestDbVersion = 00000000
+	for dbObject in dbObjects:
+		if dbObject.dbVersion > highestDbVersion:
+			highestDbVersion = dbObject.dbVersion
+	return long(highestDbVersion)
+
+#get todays date, in Sql Server format
+def getSQLdateToday():
+	#xxx
+	return "'2012-02-20 18:24:44.383'"
+	
 #get some SQL which checks if the given database object exists (if not, then we cannot back it up, and its a SQL error via a 'goto')
 def getSqlExists(dbObjectType, sqlObjectName, sqlExec):
 	if not dbObjectType == "SP":
@@ -183,15 +221,20 @@ def getSqlExists(dbObjectType, sqlObjectName, sqlExec):
 def getTempDir():
 	return os.environ['TEMP'] + '\\'
 
-def outputSummary(dbObjects):
+def outputSummary(dbObjects, bDbWasUpgraded, newDbVersion, numScriptsRan):
 	global IsDummyRun, origOutputFilepath
 	printOut("")
 	printOut("Deploy SQL results:")
 	printOut( str(getNumWarnings()) + " warnings occurred" )
 	printOut( str(len(dbObjects)) + " scripts were processed")
+	printOut( str(numScriptsRan) + " scripts were executed")
 	printOut( "Original database objects were backed up to " + origOutputFilepath)
 	if(IsDummyRun):
 		printOut("Dummy run - no database changes were made")
+	if(bDbWasUpgraded and not IsDummyRun):
+			printOut("The database has been upgraded to version " + str(newDbVersion))
+	else:
+		printOut("The database was NOT upgraded")
 	#TODO - add more summary info
 
 def runExe(targetScriptName, targetScriptDirPath, args):
@@ -207,9 +250,13 @@ def runExe(targetScriptName, targetScriptDirPath, args):
 	if(process.returncode != 0):
 		raise Exception("Process returned error code:" + str(process.returncode))
 
-def runNewSQLscripts(dbObjects, pathToNewSqlDir, outputFilepath):
+def runNewSQLscripts(dbVersion, dbObjects, pathToNewSqlDir, outputFilepath):
+	numScriptsRan = 0
 	global sqlDbName, dictDbObjectTypeToSubDir, IsDummyRun
 	for dbObject in dbObjects:
+		if(dbObject.dbVersion <= dbVersion):
+			printOut("Skipping SQL script " + dbObject.sqlScriptName + " as its version " +str(dbObject.dbVersion) + " is same or older than the current database version " + str(dbVersion))
+			continue
 		#we need to specify the database name, so we copy the script, and prefix a 'use' clause
 		sqlScriptCopy = getTempDir() + dbObject.sqlScriptName
 		
@@ -225,15 +272,18 @@ def runNewSQLscripts(dbObjects, pathToNewSqlDir, outputFilepath):
 		sqlCopyFile = open(sqlScriptCopy, 'w')
 		
 		sqlCopyFile.write('use ' + sqlDbName + getEndline())
-		sqlCopyFile.write(getEndline())
-
+		sqlCopyFile.write(getEndline() + "GO" + getEndline()) # need a GO before any CREATE/ALTER PROCEDURE
+	
 		#now just append the rest of the original file: (with replacements)
 		#we make some replacements, to help manage whether SP is CREATE or ALTER, by setting SP or SP_NEW in the listfile:
+		#
+		#TODO consider having a IF EXISTS ... CREATE/ALTER structure, which would be more robust
 		dictFindToReplace = dict()
 		if(dbObject.dbObjectType == "SP"):
 			dictFindToReplace["CREATE PROCEDURE"] = "ALTER PROCEDURE"
 		elif(dbObject.dbObjectType == "SP_NEW"):
 			dictFindToReplace["ALTER PROCEDURE"] = "CREATE PROCEDURE"
+		
 		
 		for origLine in sqlOrigFile:
 			for find in dictFindToReplace.iterkeys():
@@ -246,7 +296,19 @@ def runNewSQLscripts(dbObjects, pathToNewSqlDir, outputFilepath):
 		if not IsDummyRun:
 			#exec the copy of the original SQL script:
 			execSqlScript(sqlScriptCopy, outputFilepath)
+			numScriptsRan = numScriptsRan + 1
+	return numScriptsRan
 
+
+def setCurrentDatabaseVersion(dbConn, dbVersion, newDbVersion):
+	if(newDbVersion > dbVersion):
+		cursor = createCursor(dbConn)
+		cursor.execute("exec spDatabaseVersion_SetVersion " + str(newDbVersion))
+		dbConn.commit()
+		cursor.close()
+		
+		return True
+	return False
 		
 def validateArgs(sqlScriptListfilePath, origOutputFilepath):
 	if not os.path.exists(sqlScriptListfilePath):
@@ -260,10 +322,13 @@ def validateArgs(sqlScriptListfilePath, origOutputFilepath):
 validateArgs(sqlScriptListfilePath, origOutputFilepath)
 dbObjects = backupOriginalObjects(sqlScriptListfilePath, origOutputFilepath)
 
-#import pdb
-#pdb.set_trace()
-runNewSQLscripts(dbObjects, pathToNewSqlDir, newOutputFilepath)
-outputSummary(dbObjects)
+dbConn = createConnection()
+dbVersion = getCurrentDatabaseVersion(dbConn)
+numScriptsRan=runNewSQLscripts(dbVersion, dbObjects, pathToNewSqlDir, newOutputFilepath)
+highestDbVersion = getHighestVersion(dbObjects)
+bDbWasUpgraded = setCurrentDatabaseVersion(dbConn, dbVersion, highestDbVersion)
+outputSummary(dbObjects, bDbWasUpgraded, highestDbVersion, numScriptsRan)
+dbConn.close()
 
 ###############################################################
 

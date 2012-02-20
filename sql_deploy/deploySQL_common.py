@@ -27,13 +27,15 @@ dictDbObjectTypeToSubDir['SP'] = "storedProcedures\\"
 dictDbObjectTypeToSubDir['SP_NEW'] = "storedProcedures\\"
 dictDbObjectTypeToSubDir['TABLE_POP'] = "tables_modified\\"
 dictDbObjectTypeToSubDir['TABLE_ALTER'] = "tables_modified\\"
+dictDbObjectTypeToSubDir['TABLE_CREATE'] = "tables\\"
 
 ###############################################################
 #CLASSES
 
 class DatabaseObject:
 	"""holds details about a database object"""
-	def __init__(self, dbObjectType, sqlObjectName, sqlScriptName):
+	def __init__(self, dbVersion, dbObjectType, sqlObjectName, sqlScriptName):
+		self.dbVersion = long(dbVersion)
 		self.dbObjectType = dbObjectType
 		self.sqlObjectName = sqlObjectName
 		self.sqlScriptName = sqlScriptName
@@ -102,13 +104,14 @@ def readListfile(sqlScriptListfilePath):
 	listFileReader = csv.reader(open(sqlScriptListfilePath, 'rb'), delimiter=',')
 	for row in listFileReader:
 		if(len(row) > 0):
-			dbObjectType = row[0]
-			if(dbObjectType[0] == '#'):
+			dbVersion = row[0]
+			if(dbVersion[0] == '#'):
 				continue # a comment line
-			sqlScriptName = row[1]
+			dbObjectType = row[1]
+			sqlScriptName = row[2]
 			sqlObjectName = parseSqlScriptName(dbObjectType, sqlScriptName)
 			#printOut("dbObjectType = " + dbObjectType + " sqlScriptName = " + sqlScriptName + " sqlObjectName = " + sqlObjectName)
-			dbObjects.append(DatabaseObject(dbObjectType, sqlObjectName, sqlScriptName))
+			dbObjects.append(DatabaseObject(dbVersion,dbObjectType, sqlObjectName, sqlScriptName))
 	return dbObjects
 
 #set the global in this module
