@@ -127,7 +127,15 @@ def filetype(name):
                      "cs" : "C#",
                      "rc" : "VS Resource file",
 #                    ### Powershell ###
-                     "ps1" : "Powershell"
+                     "ps1" : "Powershell",
+					 ### Web ###
+					 "css" : "css",
+					 "js" : "javascript",
+					 "asax" : "ASP.NET handler",
+					 "ashx" : "ASP.NET handler",
+					 "aspx" : "ASP.NET page",
+					 "ascx" : "ASP.NET user control",
+					 "cshtml" : "MVC View engine file"
                      }
   
     (root, extension) = os.path.splitext(name)
