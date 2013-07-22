@@ -12,6 +12,8 @@ Usage: findSourcecodeNoCopyright.py <source directory> <semi-colon separated lis
 
 The options are:
 [-h help]
+[-i ignore file extensions]
+[-s skip directores]
 [-w show Warnings only]
 
 Example: search for .NET source code files, in the c:\\sourcecode directory and all child directories, that do not have a copyright notice:
@@ -19,6 +21,11 @@ findSourcecodeNoCopyright.py c:\\sourcecode cs;vbs
 
 Example: search ALL files, in the c:\\sourcecode directory and all child directories, that do not have a copyright notice:
 findSourcecodeNoCopyright.py c:\\sourcecode *
+
+Example: search for .NET source code files, in the c:\\sourcecode directory and all child directories, that do not have a copyright notice.
+Ignore files with extension designer.cs or Test.cs (case in-sensitive).
+Skip directories named obj or debug.
+findSourcecodeNoCopyright.py c:\\sourcecode cs;vbs -i designer.cs;Test.cs -s obj;debug
 """
 ###############################################################
 
@@ -47,6 +54,8 @@ LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(3)
 logVerbosity = LOG_VERBOSE
 
 extensions_list = set()
+extensions_to_ignore_list = set()
+directories_to_ignore_list = set()
 
 ###############################################################
 #ask_ok() - prompts the user to continue
@@ -77,6 +86,10 @@ datetime.datetime.strptime('01 12 2006 12:32', dateTimeFormat)
 ###############################################################
 #optparse - parse the args
 parser = OptionParser(usage='%prog <source directory> <size in bytes> [options]')
+parser.add_option('-i', '--ignore', dest='ignoreExtensions', default="",
+                   help='ignore file extensions')
+parser.add_option('-s', '--skip', dest='skipDirectories', default="",
+                   help='skip directories')
 parser.add_option('-w', '--warnings', dest='warnings', action='store_const',
                    const=LOG_WARNINGS, default=LOG_VERBOSE,
                    help='show only warnings (default: show all output)')
@@ -91,6 +104,8 @@ if(len(args) != 2):
 logVerbosity = options.warnings
 sourceDirPath = args[0]
 extensions = args[1]
+extensions_to_ignore_list = options.ignoreExtensions.split(';')
+directories_to_ignore_list = options.skipDirectories.split(';')
 yesAllPrompts = options.yes_all
 
 ###############################################################
@@ -105,7 +120,15 @@ print ("--------------")
 print ("sourceDirPath: " + sourceDirPath + "\n")
 print ("extensions: ")
 for ext in extensions_list:
-    print (ext + " ")
+    print (" " + ext)
+
+print ("extensions to ignore: ")
+for ext in extensions_to_ignore_list:
+    print (" " + ext)
+
+print ("directories to ignore: ")
+for dir in directories_to_ignore_list:
+    print (" " + dir)
 
 print ("")
 
@@ -151,12 +174,27 @@ def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 #IsFileExtensionOk() - does this filename match the list of extensions given by user
 def IsFileExtensionOk(filename):
     global extensions_list
+    global extensions_to_ignore_list
+
+    isExtensionOk = False
     for ext in extensions_list:
+        ext = ext.lower()
         if(ext == '*'):
-            return True
-        if (filename.endswith("." + ext)):
-            return True
-    return False
+            isExtensionOk = True
+            break
+        if (filename.lower().endswith("." + ext)):
+            isExtensionOk = True
+            break
+
+    if not isExtensionOk:
+        return False
+
+    for ext in extensions_to_ignore_list:
+        ext = ext.lower()
+        if (filename.lower().endswith("." + ext)):
+            return False
+
+    return isExtensionOk
     
 ###############################################################
 #IsFileSizeOk() - does this file have the same size given by user
@@ -178,6 +216,15 @@ def DoesFileContainCopyright(filename):
             return True
     return False
 
+def IsDirectoryOk(dirpath):
+    global directories_to_ignore_list
+    dirSeparator = '\\' #TODO add support for Unix
+    dirname = dirpath.split(dirSeparator)
+    dirname = dirname[len(dirname) - 1]
+    if(dirname in directories_to_ignore_list):
+            return False
+    return True
+
 ###############################################################
 #search_files - recursively search the given directory, and populate the map with files that match our list of extensions
 def search_files_by_ext(dir):
@@ -185,6 +232,8 @@ def search_files_by_ext(dir):
     basedir = dir
     subdirlist = []
     
+    printOut("Searching dir: " + dir)
+
     filesInDir = []
     try:
         filesInDir = os.listdir(dir)
@@ -197,15 +246,16 @@ def search_files_by_ext(dir):
         if os.path.isfile(filePath):
             if IsFileExtensionOk(filename):
                 if not DoesFileContainCopyright(filePath):
-                    printOut ("File found: " + filePath)
+                    printOut ("File found: " + filePath, LOG_WARNINGS)
                     iNumFilesFoundLocal = iNumFilesFoundLocal + 1
         else:
             subdirlist.append(filePath)
     for subdir in subdirlist:
-        try:
-            iNumFilesFoundLocal += search_files_by_ext(subdir)
-        except WindowsError:
-            printOut("Error occurred accessing directory " + subdir);
+        if IsDirectoryOk(subdir):
+            try:
+                iNumFilesFoundLocal += search_files_by_ext(subdir)
+            except WindowsError:
+                printOut("Error occurred accessing directory " + subdir);
     return iNumFilesFoundLocal
 
 ###############################################################
