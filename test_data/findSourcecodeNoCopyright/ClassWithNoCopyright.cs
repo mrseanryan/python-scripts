@@ -1,0 +1,7 @@
+namespace MyProgram
+{
+    class MyClass
+    {
+
+    }
+}
