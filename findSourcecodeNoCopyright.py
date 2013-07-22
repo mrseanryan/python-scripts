@@ -25,7 +25,7 @@ findSourcecodeNoCopyright.py c:\\sourcecode *
 Example: search for .NET source code files, in the c:\\sourcecode directory and all child directories, that do not have a copyright notice.
 Ignore files with extension designer.cs or Test.cs (case in-sensitive).
 Skip directories named obj or debug.
-findSourcecodeNoCopyright.py c:\\sourcecode cs;vbs -i designer.cs;Test.cs -s obj;debug
+findSourcecodeNoCopyright.py c:\\sourcecode cs;vbs -idesigner.cs;Test.cs -sobj;debug
 """
 ###############################################################
 
