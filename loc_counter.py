@@ -128,15 +128,18 @@ def filetype(name):
                      "rc" : "VS Resource file",
 #                    ### Powershell ###
                      "ps1" : "Powershell",
-					 ### Web ###
-					 "css" : "css",
-					 "js" : "javascript",
-					 "asax" : "ASP.NET handler",
-					 "ashx" : "ASP.NET handler",
-					 "aspx" : "ASP.NET page",
-					 "ascx" : "ASP.NET user control",
-					 "cshtml" : "MVC View engine file"
+                     ### Web ###
+                     "css" : "css",
+                     "js" : "javascript",
+                     "asax" : "ASP.NET handler",
+                     "ashx" : "ASP.NET handler",
+                     "aspx" : "ASP.NET page",
+                     "ascx" : "ASP.NET user control",
+                     "cshtml" : "MVC View engine file"
                      }
+  
+  
+    file_name_parts_to_skip = [ ".min.js", "\\Lib\\", "\\External\\", "ASPxScriptIntelliSense.js", "jquery", "\\packages\\" ]
   
     (root, extension) = os.path.splitext(name)
 
@@ -151,9 +154,12 @@ def filetype(name):
             else:
                 return "Unknown"
 
+    for exclude in file_name_parts_to_skip:
+        if exclude in name:
+            return "Excluded"
+    
     # According to the rules if we have an extension then it ALWAYS has
     # a . at the beginning.  Strip that .
-
     extension = extension[1:len(extension)]
     if (extension not in file_ext_map):
         return "Unknown"
