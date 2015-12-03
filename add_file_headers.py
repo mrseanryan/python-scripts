@@ -1,7 +1,7 @@
 """
  add_file_headers.py
  Author: Sean Ryan
- Version: 1.1
+ Version: 1.2
 
  Script to add a simple file header to all the given files.
  
@@ -236,7 +236,7 @@ def getTemplatedText(srcFilePath, templateFilePath):
 	srcFile = open(templateFilePath, "r")
 	for line in srcFile:
 		line = replaceTemplateVariables(line, dictVarToVal)
-		header = header + line + "\n"
+		header = header + line
 	return header
 
 ###############################################################
