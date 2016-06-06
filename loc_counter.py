@@ -78,6 +78,8 @@ The program automatically ignores any file in a CVS diretory.
 import os
 from os import F_OK
 
+unknownExtensions = []
+
 # This is the file extension mapping code.  Change this array if you
 # wish to change the determination of the files.  The format is "key",
 # "value" in which the key is the extension and the value is the file
@@ -91,8 +93,8 @@ def filetype(name):
                      "el" : "Emacs Lisp",
                      "elc" : "Emacs Lisp",
 #                    ### C++ ###
-                     "h" : "C or C++ Header Files",
-                     "hpp" : "C or C++ Header Files",
+                     "h" : "C or C++ Header",
+                     "hpp" : "C or C++ Header",
                      "c" : "C",
                      "cc" : "C++",
                      "cpp" : "C++",
@@ -125,21 +127,23 @@ def filetype(name):
 #                    ### .NET ###
                      "config" : "config",
                      "cs" : "C#",
-                     "rc" : "VS Resource file",
+                     "rc" : "VS Resource",
+                     "xaml": "XAML file",
 #                    ### Powershell ###
                      "ps1" : "Powershell",
                      ### Web ###
                      "css" : "css",
                      "js" : "javascript",
+                     "json" : "json",
                      "asax" : "ASP.NET handler",
                      "ashx" : "ASP.NET handler",
                      "aspx" : "ASP.NET page",
                      "ascx" : "ASP.NET user control",
-                     "cshtml" : "MVC View engine file"
+                     "cshtml" : "MVC View Razor"
                      }
   
   
-    file_name_parts_to_skip = [ ".min.js", "\\Lib\\", "\\External\\", "ASPxScriptIntelliSense.js", "jquery", "\\packages\\" ]
+    file_name_parts_to_skip = [ "ai.0.", "bootstrap.", "jquery.", "jquery-", "modernizr", ".min.js",  ".min.css", "\\Lib\\", "\\External\\", "ASPxScriptIntelliSense.js", "jquery", "\\packages\\", "\\node_modules\\", "Silverlight.js", "\\bower_components\\", "\\tmp\\", "\\temp\\" ]
   
     (root, extension) = os.path.splitext(name)
 
@@ -155,13 +159,15 @@ def filetype(name):
                 return "Unknown"
 
     for exclude in file_name_parts_to_skip:
-        if exclude in name:
+        if exclude.lower() in name.lower():
             return "Excluded"
     
     # According to the rules if we have an extension then it ALWAYS has
     # a . at the beginning.  Strip that .
     extension = extension[1:len(extension)]
     if (extension not in file_ext_map):
+        if not extension in unknownExtensions:
+            unknownExtensions.append(extension)
         return "Unknown"
 
     return file_ext_map[extension]
@@ -190,11 +196,14 @@ def main():
     from optparse import OptionParser
 
     parser = OptionParser()
+    parser.add_option("-v", "--verbose",
+                      action="store_true", dest="verbose", default=False,
+                      help="Verbose output")
     parser.add_option("-w", "--where",
                       action="store_true", dest="where", default=False,
                       help="Print where files are located")
-    parser.add_option("-e", "--exclude", action="append", type="string",
-                      dest="exclude_list", help="Directories to exclude")
+    parser.add_option("-e", "--exclude", action="append", default=[],
+                      dest="exclude_dir", help="Directory to exclude")
     parser.add_option("-l", "--language", action="store", type="string",
                       dest="language",
                       help="Find only code of a particular language")
@@ -205,7 +214,8 @@ def main():
     (options, args) = parser.parse_args()
 
     where = options.where
-    exclude_list = options.exclude_list
+    exclude_list_default = [ "$tf", ".git", ".hg", "coverage", "External", "apps_out", "bin", "bower_components", "css_out", "dist", "jquery", "js_out", "lib", "node_modules", "obj", "packages", "published", "temp""tmp", "typings" ]
+    exclude_list = exclude_list_default + options.exclude_dir
     language = options.language
     pretty = options.pretty
 
@@ -214,9 +224,19 @@ def main():
             dirs.remove('CVS')  # don't visit CVS directories
 
         if exclude_list:
+            dirsLower = []
+            for dir in dirs:
+                dirsLower.append(dir.lower())
+            #print "dirs: " + ",".join(dirs)
+            #print "excluded dirs:" + ",".join(exclude_list)
             for dir in exclude_list:
-                if dir in dirs:
-                    dirs.remove(dir)
+                if dir.lower() in dirsLower:
+                    i = dirsLower.index(dir.lower())
+                    if(options.verbose):
+                        print "excluding: " + dir.lower() + " at " + str(i)
+                    dirsLower.remove(dirsLower[i])
+                    dirs.remove(dirs[i])
+            #print "dirs after exclude: " + ",".join(dirs)
 
         for name in files:
             fullname = os.path.join(root, name)
@@ -224,6 +244,9 @@ def main():
                 continue
             type = filetype(fullname)
 
+            if options.verbose:
+                print fullname
+            
             if (language and (type != language)):
                 continue
 
@@ -263,7 +286,7 @@ def main():
     elif (pretty == "LaTeX"):
         print "\\begin{tabular}{|l|l|c|}\n\\hline\nType & Number & Lines\\\\\n\\hline"
     else:
-        print "Type\t\tNumber\t\tLines"
+        print "Type\t\tFiles\tLines"
 
     types = file_map.keys()
     types.sort()
@@ -283,7 +306,7 @@ def main():
         elif (pretty == "LaTeX"):
             print "%s & %d & %d\\\\" % (key, file_map[key], size_map[key])
         else:
-            print "%s\t\t%d\t\t%d" % (key, file_map[key], size_map[key])
+            print "%s\t\t%d\t%d" % (key, file_map[key], size_map[key])
         
         if (where == True):
             dirs = location_map[key].keys()
@@ -307,7 +330,7 @@ def main():
         print "\\hline \\hline\n&Files & Lines\\\\"
         print "Identified Code & %d & %d\\\\" % (total_files, total_lines)
     else:
-        print "\n\t\t\tFiles\tLines"
+        print "\n\t\tFiles\tLines"
         print "Identified Code\t\t%d\t%d\n" % (total_files, total_lines)
 
     if "Unknown" in file_map.keys() and "Unknown" in size_map.keys():
@@ -315,11 +338,14 @@ def main():
             print "<tr><td>Unknown</td><td>%d</td><td>%d</td></tr>" % \
                   (file_map["Unknown"], size_map["Unknown"])
         elif (pretty == "LaTeX"):
-            print "Unknown & %d & %d\\\\\n\\hline" % \
+            print "Skipped & %d & %d\\\\\n\\hline" % \
                   (file_map["Unknown"], size_map["Unknown"])
         else:
-            print "Unknown\t\t\t%d\t%d\n" % \
-                  (file_map["Unknown"], size_map["Unknown"])
+            print "Skipped\t\t%d\t%d" % \
+                (file_map["Unknown"], size_map["Unknown"])
+            unknownExtensions.sort()
+            print "Skipped extensions:\t\t" + ", ".join(unknownExtensions)
+            print "\n"
         total_files += file_map["Unknown"]
         total_lines += size_map["Unknown"]
 
@@ -329,7 +355,7 @@ def main():
     elif (pretty == "LaTeX"):
         print "Total & %d & %d\\\\\\hline" % (total_files, total_lines)        
     else:
-        print "Total\t\t\t%d\t%d\n" % (total_files, total_lines)
+        print "Total\t\t%d\t%d\n" % (total_files, total_lines)
 
     if (where == True):
         if (pretty == "HTML"):
