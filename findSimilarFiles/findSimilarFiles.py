@@ -27,7 +27,7 @@ FILE_SIZE_TOLERANCE_BYTES = 100 * 1024
 END_LINE = "\n"
 
 FILES_TO_SKIP = [ ".picasa.ini", "Picasa.ini", ".picasa (2).ini", ".picasa (3).ini", "Thumbs.db", "Thumbs (2).db", "Thumbs (3).db" ]
-DIRS_TO_SKIP = [ ".picasaoriginals", "Downloaded Albums", ".Picasa3Temp_1" ]
+DIRS_TO_SKIP = [ ".picasaoriginals", "Downloaded Albums", ".Picasa3Temp", ".Picasa3Temp_1", "thumbnails" ]
 
 ###############################################################
 #usage() - prints out the usage text, from the top of this file :-)
