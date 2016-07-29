@@ -98,7 +98,10 @@ def process(sourceDirPath, targetDirPath):
 	groupsBySize = groupBySize(srcFiles, targetFiles)
 	for fileSize in groupsBySize:
 		printOutGroup(groupsBySize[fileSize])
-	#TODO extract as processGroups
+	processGroups(groupsBySize)
+	reportResults(srcFiles)
+
+def processGroups(groupsBySize):
 	for fileSize in groupsBySize:
 		group = groupsBySize[fileSize]
 		printOut("Processing group " + str(group.id) + " of " + str(len(groupsBySize)))
@@ -107,8 +110,6 @@ def process(sourceDirPath, targetDirPath):
 			for tF in group.targetFiles:
 				if(compareFiles(srcF, tF) == IDENTICAL_FILES):
 					srcF.isNew = False
-	#
-	reportResults(srcFiles)
 
 def reportResults(srcFiles):
 	printOut("Result:")
