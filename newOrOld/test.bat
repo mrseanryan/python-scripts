@@ -1,1 +1,1 @@
-\Python27\python.exe  newOrOld.py testData\source testData\target  
+\Python27\python.exe  newOrOld.py testData\source testData\target -w

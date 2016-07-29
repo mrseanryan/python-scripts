@@ -113,7 +113,7 @@ def processGroups(groupsBySize):
 					srcF.isNew = False
 
 def reportResults(srcFiles):
-	printOut("Result:")
+	printOut("Result:", LOG_WARNINGS)
 	oldFiles = []
 	newFiles = []
 	for file in srcFiles:
@@ -121,15 +121,15 @@ def reportResults(srcFiles):
 			newFiles.append(file)
 		else:
 			oldFiles.append(file)
-	printOut("old files: (they ARE duplicated in target directory)")
+	printOut("old files: (they ARE duplicated in target directory)", LOG_WARNINGS)
 	for file in oldFiles:
-		printOut("[old] " + file.filePath)
-	printOut(str(len(oldFiles)) + " old files found.")
-	printOut("new files: (they are NOT found in target directory)")
+		printOut("[old] " + file.filePath, LOG_WARNINGS)
+	printOut(str(len(oldFiles)) + " old files found.", LOG_WARNINGS)
+	printOut("new files: (they are NOT found in target directory)", LOG_WARNINGS)
 	for file in newFiles:
-		printOut("[new] " + file.filePath)
-	printOut(str(len(newFiles)) + " new files found.")
-	printOut(str(len(oldFiles) + len(newFiles)) + " total source files.")
+		printOut("[new] " + file.filePath, LOG_WARNINGS)
+	printOut(str(len(newFiles)) + " new files found.", LOG_WARNINGS)
+	printOut(str(len(oldFiles) + len(newFiles)) + " total source files.", LOG_WARNINGS)
 
 def compareFiles(file1, file2):
 	areSame = filecmp.cmp(file1.filePath, file2.filePath, False)
