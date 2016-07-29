@@ -9,6 +9,7 @@ newOrOld.py <source directory> <target directory> [options]
 """
 
 import datetime
+import filecmp
 from optparse import OptionParser
 import os
 import sys
@@ -131,9 +132,12 @@ def reportResults(srcFiles):
 	printOut(str(len(oldFiles) + len(newFiles)) + " total source files.")
 
 def compareFiles(file1, file2):
-	#TODO impl me
-	return IDENTICAL_FILES
-	
+	areSame = filecmp.cmp(file1.filePath, file2.filePath, False)
+	if areSame:
+		return IDENTICAL_FILES
+	else:
+		return DIFFERENT_FILES
+
 def groupBySize(srcFiles, targetFiles):
 	fileSizeToGroup = dict()
 	for srcFile in srcFiles:
