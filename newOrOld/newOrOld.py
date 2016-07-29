@@ -116,13 +116,18 @@ def processGroups(groupsBySize):
 		printOut("Processing group " + str(group.id) + " of " + str(len(groupsBySize)))
 		for srcF in group.sourceFiles:
 			srcF.isNew = True
-			#find any same-file-name files: (can indicate a near-match)
+			#optimization - avoid repeated file path compare:
+			targetFilesNotSamePath = []
 			for tF in group.targetFiles:
-				if(srcF.filePath != tF.filePath and srcF.fileName == tF.fileName):
+				if(srcF.filePath != tF.filePath):
+					targetFilesNotSamePath.append(tF)
+			#find any same-file-name files: (can indicate a near-match)
+			for tF in targetFilesNotSamePath:
+				if(srcF.fileName == tF.fileName):
 					srcF.addSimilarFile(tF)
 			#compare the files:
-			for tF in group.targetFiles:
-				if(srcF.filePath != tF.filePath and compareFiles(srcF, tF) == IDENTICAL_FILES):
+			for tF in targetFilesNotSamePath:
+				if(compareFiles(srcF, tF) == IDENTICAL_FILES):
 					srcF.isNew = False
 					break
 
@@ -154,6 +159,7 @@ def reportResults(srcFiles, startTime, targetFileCount):
 	printOut("Time taken: " + getElapsedTime(startTime), LOG_WARNINGS)
 
 def compareFiles(file1, file2):
+	printOut("comparing files: " + file1.filePath + " <> " + file2.filePath)
 	areSame = filecmp.cmp(file1.filePath, file2.filePath, False)
 	if areSame:
 		return IDENTICAL_FILES
