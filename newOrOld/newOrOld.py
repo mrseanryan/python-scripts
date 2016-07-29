@@ -48,6 +48,27 @@ class FileDetails:
 		self.filePath = filePath
 		self.fileSize = os.path.getsize(filePath)
 
+class GroupBySize:
+	"""A group of files. All files in this group, have the same size."""
+	def __init__(self, id, fileSize):
+		self.id = id
+		self.fileSize = fileSize
+		self.sourceFiles = []
+		self.targetFiles = []
+	
+	def addSourceFile(self, sourceFile):
+		self.sourceFiles.append(sourceFile)
+	
+	def addTargetFile(self, file):
+		self.targetFiles.append(file)
+	
+	#TODO is there a more Pythonic way to do this:
+	def toString(self):
+		return ( "id:" + str(self.id) +
+			" file size: " + str(self.fileSize) +
+			" source files: " + str(len(self.sourceFiles)) +
+			" target files: " + str(len(self.targetFiles)) )
+
 ## ============================ BEGIN FUNCTIONS ===================================
 
 ###############################################################
@@ -71,8 +92,9 @@ def process(sourceDirPath, targetDirPath):
 	#list all in target
 	targetFiles = getListOfFiles(targetDirPath)
 	printOut("Target dir: " + str(len(targetFiles)) + " files.")
-	#group by size
-	#xxx use a class GroupBySize - {size:101, srcFiles:[], targetFiles:[], id:x}
+	groupsBySize = groupBySize(srcFiles, targetFiles)
+	for fileSize in groupsBySize:
+		printOutGroup(groupsBySize[fileSize])
 	#for each group:
 	# for each srcF in srcFiles:
 	#   for each tF in tgtFiles:
@@ -80,6 +102,22 @@ def process(sourceDirPath, targetDirPath):
 	#       srcF.IsNew = False
 	#
 	#report the results
+
+def groupBySize(srcFiles, targetFiles):
+	fileSizeToGroup = dict()
+	for srcFile in srcFiles:
+		if srcFile.fileSize not in fileSizeToGroup:
+			fileSizeToGroup[srcFile.fileSize] = GroupBySize(len(fileSizeToGroup), srcFile.fileSize)
+		group = fileSizeToGroup[srcFile.fileSize]
+		group.addSourceFile(srcFile)
+		for tgtFile in targetFiles:
+			if srcFile.fileSize == tgtFile.fileSize:
+				group.addTargetFile(tgtFile)
+	return fileSizeToGroup
+
+def printOutGroup(group):
+	printOut("Group: ")
+	printOut(group.toString())
 
 def getListOfFiles(dir):
 	localFilesFound = []
@@ -96,8 +134,9 @@ def getListOfFiles(dir):
 	for filename in filesInDir:
 		filePath = os.path.join(basedir,filename)
 		if os.path.isfile(filePath):
-			printOut ("File found: " + filePath)
-			localFilesFound.append(FileDetails(filePath))
+			fileDets = FileDetails(filePath)
+			printOut ("File found: " + fileDets.filePath + " size:" + str(fileDets.fileSize))
+			localFilesFound.append(fileDets)
 		else:
 			subdirlist.append(filePath)
 	for subdir in subdirlist:
