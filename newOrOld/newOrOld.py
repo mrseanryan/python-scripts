@@ -21,6 +21,9 @@ import sys
 LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(3)
 logVerbosity = LOG_VERBOSE
 
+IDENTICAL_FILES = "Identical files"
+DIFFERENT_FILES = "Different files"
+
 ###############################################################
 #usage() - prints out the usage text, from the top of this file :-)
 def usage():
@@ -95,14 +98,41 @@ def process(sourceDirPath, targetDirPath):
 	groupsBySize = groupBySize(srcFiles, targetFiles)
 	for fileSize in groupsBySize:
 		printOutGroup(groupsBySize[fileSize])
-	#for each group:
-	# for each srcF in srcFiles:
-	#   for each tF in tgtFiles:
-	#     if(cF(srcF, tF) == CompareResult.Identical):
-	#       srcF.IsNew = False
+	#TODO extract as processGroups
+	for fileSize in groupsBySize:
+		group = groupsBySize[fileSize]
+		printOut("Processing group " + str(group.id) + " of " + str(len(groupsBySize)))
+		for srcF in group.sourceFiles:
+			srcF.isNew = True
+			for tF in group.targetFiles:
+				if(compareFiles(srcF, tF) == IDENTICAL_FILES):
+					srcF.isNew = False
 	#
-	#report the results
+	reportResults(srcFiles)
 
+def reportResults(srcFiles):
+	printOut("Result:")
+	oldFiles = []
+	newFiles = []
+	for file in srcFiles:
+		if(file.isNew):
+			newFiles.append(file)
+		else:
+			oldFiles.append(file)
+	printOut("old files: (they ARE duplicated in target directory)")
+	for file in oldFiles:
+		printOut("[old] " + file.filePath)
+	printOut(str(len(oldFiles)) + " old files found.")
+	printOut("new files: (they are NOT found in target directory)")
+	for file in newFiles:
+		printOut("[new] " + file.filePath)
+	printOut(str(len(newFiles)) + " new files found.")
+	printOut(str(len(oldFiles) + len(newFiles)) + " total source files.")
+
+def compareFiles(file1, file2):
+	#TODO impl me
+	return IDENTICAL_FILES
+	
 def groupBySize(srcFiles, targetFiles):
 	fileSizeToGroup = dict()
 	for srcFile in srcFiles:
