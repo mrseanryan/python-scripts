@@ -55,6 +55,10 @@ class FileDetails:
 		self.fileName = getFileName(filePath)
 		self.filePath = filePath
 		self.fileSize = os.path.getsize(filePath)
+		self.similarFiles = []
+		
+	def addSimilarFile(self, fileDetail):
+		self.similarFiles.append(fileDetail)
 
 class GroupBySize:
 	"""A group of files. All files in this group, have the same size."""
@@ -112,6 +116,11 @@ def processGroups(groupsBySize):
 		printOut("Processing group " + str(group.id) + " of " + str(len(groupsBySize)))
 		for srcF in group.sourceFiles:
 			srcF.isNew = True
+			#find any same-file-name files: (can indicate a near-match)
+			for tF in group.targetFiles:
+				if(srcF.filePath != tF.filePath and srcF.fileName == tF.fileName):
+					srcF.addSimilarFile(tF)
+			#compare the files:
 			for tF in group.targetFiles:
 				if(srcF.filePath != tF.filePath and compareFiles(srcF, tF) == IDENTICAL_FILES):
 					srcF.isNew = False
@@ -132,7 +141,13 @@ def reportResults(srcFiles, startTime, targetFileCount):
 	printOut(str(len(oldFiles)) + " old files found.", LOG_WARNINGS)
 	printOut("new files: (they are NOT found in target directory)", LOG_WARNINGS)
 	for file in newFiles:
-		printOut("[new] " + file.filePath, LOG_WARNINGS)
+		newFileDesc = "[new] " + file.filePath
+		if(len(file.similarFiles) > 0):
+			newFileDesc += " similar: ["
+			for simFile in file.similarFiles:
+				newFileDesc += simFile.filePath + ", "
+			newFileDesc += "]"
+		printOut(newFileDesc, LOG_WARNINGS)
 	printOut(str(len(newFiles)) + " new files found.", LOG_WARNINGS)
 	printOut(str(len(oldFiles) + len(newFiles)) + " total source files found.", LOG_WARNINGS)
 	printOut(str(targetFileCount) + " total target files found.", LOG_WARNINGS);
