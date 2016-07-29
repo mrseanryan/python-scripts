@@ -104,7 +104,7 @@ def process(sourceDirPath, targetDirPath, startTime):
 	for fileSize in groupsBySize:
 		printOutGroup(groupsBySize[fileSize])
 	processGroups(groupsBySize)
-	reportResults(srcFiles, startTime)
+	reportResults(srcFiles, startTime, len(targetFiles))
 
 def processGroups(groupsBySize):
 	for fileSize in groupsBySize:
@@ -116,7 +116,7 @@ def processGroups(groupsBySize):
 				if(srcF.filePath != tF.filePath and compareFiles(srcF, tF) == IDENTICAL_FILES):
 					srcF.isNew = False
 
-def reportResults(srcFiles, startTime):
+def reportResults(srcFiles, startTime, targetFileCount):
 	printOut("Result:", LOG_WARNINGS)
 	oldFiles = []
 	newFiles = []
@@ -133,7 +133,8 @@ def reportResults(srcFiles, startTime):
 	for file in newFiles:
 		printOut("[new] " + file.filePath, LOG_WARNINGS)
 	printOut(str(len(newFiles)) + " new files found.", LOG_WARNINGS)
-	printOut(str(len(oldFiles) + len(newFiles)) + " total source files.", LOG_WARNINGS)
+	printOut(str(len(oldFiles) + len(newFiles)) + " total source files found.", LOG_WARNINGS)
+	printOut(str(targetFileCount) + " total target files found.", LOG_WARNINGS);
 	printOut("Time taken: " + getElapsedTime(startTime), LOG_WARNINGS)
 
 def compareFiles(file1, file2):
