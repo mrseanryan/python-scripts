@@ -4,6 +4,8 @@ Script to scan a source folder against a target folder,
 and report which files a are NEW (not in target)
 and which files are OLD (they ARE in target).
 
+note: does NOT check for duplicate files within source directory.
+
 USAGE:
 newOrOld.py <source directory> <target directory> [options]
 """
@@ -111,7 +113,7 @@ def processGroups(groupsBySize):
 		for srcF in group.sourceFiles:
 			srcF.isNew = True
 			for tF in group.targetFiles:
-				if(compareFiles(srcF, tF) == IDENTICAL_FILES):
+				if(srcF.filePath != tF.filePath and compareFiles(srcF, tF) == IDENTICAL_FILES):
 					srcF.isNew = False
 
 def reportResults(srcFiles, startTime):
