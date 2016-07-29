@@ -1,4 +1,3 @@
-
 """
 Script to scan a folder for 'similar' files:
 - same or similar name (using renaming behaviour used by Samsung S3, S7)
@@ -27,6 +26,9 @@ FILE_SIZE_TOLERANCE_BYTES = 100 * 1024
 
 END_LINE = "\n"
 
+FILES_TO_SKIP = [ ".picasa.ini", "Picasa.ini", ".picasa (2).ini", ".picasa (3).ini", "Thumbs.db", "Thumbs (2).db", "Thumbs (3).db" ]
+DIRS_TO_SKIP = [ ".picasaoriginals", "Downloaded Albums", ".Picasa3Temp_1" ]
+
 ###############################################################
 #usage() - prints out the usage text, from the top of this file :-)
 def usage():
@@ -48,6 +50,11 @@ logVerbosity = options.warnings
 startTime = time.time()
 
 ## ============================ BEGIN CLASSES ===================================
+class SimilarFile:
+	def __init__(self, fileDetail, areDatesSimilar):
+		self.otherFileDets = fileDetail
+		self.areDatesSimilar = areDatesSimilar
+
 class FileDetails:
 	"""holds details about a file, including modified time"""
 	def __init__(self, filePath):
@@ -58,8 +65,8 @@ class FileDetails:
 		self.similarFiles = []
 		self.normFileName = normalizeFileName(self.fileName)
 		
-	def addSimilarFile(self, fileDetail):
-		self.similarFiles.append(fileDetail)
+	def addSimilarFile(self, similarFile):
+		self.similarFiles.append(similarFile)
 
 ## ============================ BEGIN FUNCTIONS ===================================
 
@@ -90,7 +97,10 @@ def processFiles(srcFiles):
 		for j in range(i+1, len(srcFiles)):
 			otherF = srcFiles[j]
 			if(areFileSizesSimilar(srcF, otherF) and areFileNamesSimilar(srcF.normFileName, otherF.normFileName)):
-				srcF.addSimilarFile(otherF)
+				srcF.addSimilarFile(SimilarFile(otherF, areDatesSimilar(srcF, otherF)))
+
+def areDatesSimilar(file1, file2):
+	return file1.dateTimeStamp == file2.dateTimeStamp
 
 def areFileNamesSimilar(fileName1, fileName2):
 	#Samsumg S7 and/or Dropbox are renaming and slightly modifying photo files (rotation?),
@@ -100,6 +110,9 @@ def areFileNamesSimilar(fileName1, fileName2):
 	return fileName1 == fileName2
 
 def normalizeFileName(fileName):
+	#remove suffixes: -1 (0) (1) (2)
+	fileName = fileName.replace("-1.",".").replace("(0).", ".").replace("(1).", ".").replace("(2).", ".")
+	#try to remove differences between the 2 file name formats used by Samsung:
 	return fileName.replace(" ", "_").replace(".","").replace("-","")
 
 def areFileSizesSimilar(srcF, otherF):
@@ -117,7 +130,11 @@ def reportResults(srcFiles, startTime):
 		newFileDesc = "[duplicated?] " + file.filePath
 		newFileDesc += END_LINE
 		for simFile in file.similarFiles:
-			newFileDesc += "  [similar] " + simFile.filePath + END_LINE
+			simFileDets = simFile.otherFileDets
+			newFileDesc += "  [similar] " + simFileDets.filePath
+			if not simFile.areDatesSimilar:
+				newFileDesc += " [dates differ!]"
+			newFileDesc += END_LINE
 		printOut(newFileDesc, LOG_WARNINGS)
 	printOut(str(len(filesWithSimilarFiles)) + " possible duplicate files found.", LOG_WARNINGS)
 	printOut("  note: from testing: the name with the space IS rotated - so you want to keep that one...", LOG_WARNINGS)
@@ -139,17 +156,27 @@ def getListOfFiles(dir):
 	for filename in filesInDir:
 		filePath = os.path.join(basedir,filename)
 		if os.path.isfile(filePath):
-			fileDets = FileDetails(filePath)
-			printOut ("File found: " + fileDets.filePath + " size:" + str(fileDets.fileSize))
-			localFilesFound.append(fileDets)
+			if isFileOk(filePath):
+				fileDets = FileDetails(filePath)
+				printOut ("File found: " + fileDets.filePath + " size:" + str(fileDets.fileSize))
+				localFilesFound.append(fileDets)
 		else:
-			subdirlist.append(filePath)
+			if isDirOk(filePath):
+				subdirlist.append(filePath)
 	for subdir in subdirlist:
 		try:
 			localFilesFound = localFilesFound + getListOfFiles(subdir)
 		except WindowsError:
 			printOut("Error occurred accessing directory " + subdir, LOG_WARNINGS);
 	return localFilesFound
+
+def isFileOk(filePath):
+	fileName = getFileName(filePath)
+	return fileName not in FILES_TO_SKIP
+
+def isDirOk(filePath):
+	fileName = getFileName(filePath)
+	return fileName not in DIRS_TO_SKIP
 
 def getFileModTime(filePath):
 	tm = os.path.getmtime(filePath)
