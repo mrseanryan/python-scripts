@@ -13,7 +13,7 @@ import filecmp
 from optparse import OptionParser
 import os
 import sys
-
+import time
 
 ###############################################################
 # Define some defaults:
@@ -42,6 +42,8 @@ if(len(args) != 2):
 	usage()
 	sys.exit(2)
 logVerbosity = options.warnings
+
+startTime = time.time()
 
 ## ============================ BEGIN CLASSES ===================================
 class FileDetails:
@@ -88,7 +90,7 @@ def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
 	elif(logVerbosity >= verb):
 		sys.stdout.write(txt)
 
-def process(sourceDirPath, targetDirPath):
+def process(sourceDirPath, targetDirPath, startTime):
 	printOut("Processing source dir: " + sourceDirPath)
 	#list all in source
 	srcFiles = getListOfFiles(sourceDirPath)
@@ -100,7 +102,7 @@ def process(sourceDirPath, targetDirPath):
 	for fileSize in groupsBySize:
 		printOutGroup(groupsBySize[fileSize])
 	processGroups(groupsBySize)
-	reportResults(srcFiles)
+	reportResults(srcFiles, startTime)
 
 def processGroups(groupsBySize):
 	for fileSize in groupsBySize:
@@ -112,7 +114,7 @@ def processGroups(groupsBySize):
 				if(compareFiles(srcF, tF) == IDENTICAL_FILES):
 					srcF.isNew = False
 
-def reportResults(srcFiles):
+def reportResults(srcFiles, startTime):
 	printOut("Result:", LOG_WARNINGS)
 	oldFiles = []
 	newFiles = []
@@ -130,6 +132,7 @@ def reportResults(srcFiles):
 		printOut("[new] " + file.filePath, LOG_WARNINGS)
 	printOut(str(len(newFiles)) + " new files found.", LOG_WARNINGS)
 	printOut(str(len(oldFiles) + len(newFiles)) + " total source files.", LOG_WARNINGS)
+	printOut("Time taken: " + getElapsedTime(startTime), LOG_WARNINGS)
 
 def compareFiles(file1, file2):
 	areSame = filecmp.cmp(file1.filePath, file2.filePath, False)
@@ -145,9 +148,11 @@ def groupBySize(srcFiles, targetFiles):
 			fileSizeToGroup[srcFile.fileSize] = GroupBySize(len(fileSizeToGroup), srcFile.fileSize)
 		group = fileSizeToGroup[srcFile.fileSize]
 		group.addSourceFile(srcFile)
-		for tgtFile in targetFiles:
-			if srcFile.fileSize == tgtFile.fileSize:
-				group.addTargetFile(tgtFile)
+	for tgtFile in targetFiles:
+		#optimization: we only consider target files that have a size equal to some source file:
+		if tgtFile.fileSize in fileSizeToGroup:
+			group = fileSizeToGroup[tgtFile.fileSize]
+			group.addTargetFile(tgtFile)
 	return fileSizeToGroup
 
 def printOutGroup(group):
@@ -188,6 +193,13 @@ def getFileModTime(filePath):
 def getFileName(filePath):
 	return os.path.basename(filePath)
 
+def getElapsedTime(startTime):
+	elapsedInSeconds = (time.time() - startTime)
+	
+	m, s = divmod(elapsedInSeconds, 60)
+	h, m = divmod(m, 60)
+	return "%d hours %d mins %.2fs" % (h, m, s)
+
 ## ============================ END FUNCTIONS ===================================
 
 ## ============================ BEGIN MAIN ===================================
@@ -195,4 +207,4 @@ def getFileName(filePath):
 source_dirpath = args[0]
 target_dirpath = args[1]
 
-process(source_dirpath, target_dirpath)
+process(source_dirpath, target_dirpath, startTime)
