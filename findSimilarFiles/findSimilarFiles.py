@@ -11,7 +11,6 @@ findSimilarFiles.py <directory> [options]
 """
 
 import datetime
-import filecmp
 from optparse import OptionParser
 import os
 import sys
@@ -24,10 +23,9 @@ import time
 LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(3)
 logVerbosity = LOG_VERBOSE
 
-IDENTICAL_FILES = "Identical files"
-DIFFERENT_FILES = "Different files"
+FILE_SIZE_TOLERANCE_BYTES = 100 * 1024
 
-FILE_SIZE_TOLERANCE_BYTES = 600
+END_LINE = "\n"
 
 ###############################################################
 #usage() - prints out the usage text, from the top of this file :-)
@@ -58,6 +56,7 @@ class FileDetails:
 		self.filePath = filePath
 		self.fileSize = os.path.getsize(filePath)
 		self.similarFiles = []
+		self.normFileName = normalizeFileName(self.fileName)
 		
 	def addSimilarFile(self, fileDetail):
 		self.similarFiles.append(fileDetail)
@@ -90,13 +89,15 @@ def processFiles(srcFiles):
 		srcF = srcFiles[i]
 		for j in range(i+1, len(srcFiles)):
 			otherF = srcFiles[j]
-			if(areFileSizesSimilar(srcF, otherF) and areFileNamesSimilar(srcF.fileName, otherF.fileName)):
+			if(areFileSizesSimilar(srcF, otherF) and areFileNamesSimilar(srcF.normFileName, otherF.normFileName)):
 				srcF.addSimilarFile(otherF)
 
 def areFileNamesSimilar(fileName1, fileName2):
 	#Samsumg S7 and/or Dropbox are renaming and slightly modifying photo files (rotation?),
 	#resulting in duplicates :-( - but after testing, the size is also slightly different by 500 bytes or so...
-	return normalizeFileName(fileName1) == normalizeFileName(fileName2)
+	#
+	#from testing: the name with the space IS rotated - so you want to keep that one...
+	return fileName1 == fileName2
 
 def normalizeFileName(fileName):
 	return fileName.replace(" ", "_").replace(".","").replace("-","")
@@ -113,14 +114,13 @@ def reportResults(srcFiles, startTime):
 
 	printOut("files with similar other files: (similar name, size)", LOG_WARNINGS)
 	for file in filesWithSimilarFiles:
-		newFileDesc = "[duplicate?] " + file.filePath
-		if(len(file.similarFiles) > 0):
-			newFileDesc += " similar: ["
-			for simFile in file.similarFiles:
-				newFileDesc += simFile.filePath + ", "
-			newFileDesc += "]"
+		newFileDesc = "[duplicated?] " + file.filePath
+		newFileDesc += END_LINE
+		for simFile in file.similarFiles:
+			newFileDesc += "  [similar] " + simFile.filePath + END_LINE
 		printOut(newFileDesc, LOG_WARNINGS)
 	printOut(str(len(filesWithSimilarFiles)) + " possible duplicate files found.", LOG_WARNINGS)
+	printOut("  note: from testing: the name with the space IS rotated - so you want to keep that one...", LOG_WARNINGS)
 	printOut(str(len(srcFiles)) + " total files found.", LOG_WARNINGS)
 	printOut("Time taken: " + getElapsedTime(startTime), LOG_WARNINGS)
 
