@@ -123,13 +123,21 @@ def processGroups(groupsBySize):
 					targetFilesNotSamePath.append(tF)
 			#find any same-file-name files: (can indicate a near-match)
 			for tF in targetFilesNotSamePath:
-				if(srcF.fileName == tF.fileName):
+				if(areFileNamesSimilar(srcF.fileName, tF.fileName)):
 					srcF.addSimilarFile(tF)
 			#compare the files:
 			for tF in targetFilesNotSamePath:
 				if(compareFiles(srcF, tF) == IDENTICAL_FILES):
 					srcF.isNew = False
 					break
+
+def areFileNamesSimilar(fileName1, fileName2):
+	#Samsumg S7 and/or Dropbox are renaming and slightly modifying photo files,
+	#resulting in duplicates :-( - but after testing, the size is also slightly different by 500 bytes or so...
+	return normalizeFileName(fileName1) == normalizeFileName(fileName2)
+
+def normalizeFileName(fileName):
+	return fileName.replace(" ", "_").replace(".","").replace("-","")
 
 def reportResults(srcFiles, startTime, targetFileCount):
 	printOut("Result:", LOG_WARNINGS)
