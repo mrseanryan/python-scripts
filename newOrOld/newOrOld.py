@@ -115,6 +115,7 @@ def processGroups(groupsBySize):
 			for tF in group.targetFiles:
 				if(srcF.filePath != tF.filePath and compareFiles(srcF, tF) == IDENTICAL_FILES):
 					srcF.isNew = False
+					break
 
 def reportResults(srcFiles, startTime, targetFileCount):
 	printOut("Result:", LOG_WARNINGS)
