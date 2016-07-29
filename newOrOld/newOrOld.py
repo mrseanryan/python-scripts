@@ -201,7 +201,7 @@ def getListOfFiles(dir):
 	try:
 		filesInDir = os.listdir(dir)
 	except WindowsError:
-		printOut("Error occurred accessing directory " + dir);
+		printOut("Error occurred accessing directory " + dir, LOG_WARNINGS);
 		return 0
 	
 	for filename in filesInDir:
@@ -216,7 +216,7 @@ def getListOfFiles(dir):
 		try:
 			localFilesFound = localFilesFound + getListOfFiles(subdir)
 		except WindowsError:
-			printOut("Error occurred accessing directory " + subdir);
+			printOut("Error occurred accessing directory " + subdir, LOG_WARNINGS);
 	return localFilesFound
 
 def getFileModTime(filePath):
