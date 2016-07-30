@@ -27,6 +27,7 @@ FILE_SIZE_TOLERANCE_BYTES = 100 * 1024
 END_LINE = "\n"
 
 FILES_TO_SKIP = [ ".picasa.ini", "Picasa.ini", ".picasa (2).ini", ".picasa (3).ini", "Thumbs.db", "Thumbs (2).db", "Thumbs (3).db" ]
+FILES_TO_SKIP_BY_FIRST_CHAR = [ "P", "D" ]
 DIRS_TO_SKIP = [ ".picasaoriginals", "Downloaded Albums", ".Picasa3Temp", ".Picasa3Temp_1", "thumbnails" ]
 
 ###############################################################
@@ -127,11 +128,11 @@ def reportResults(srcFiles, startTime):
 
 	printOut("files with similar other files: (similar name, size)", LOG_WARNINGS)
 	for file in filesWithSimilarFiles:
-		newFileDesc = "[duplicated?] " + file.filePath
+		newFileDesc = "[duplicated?] " + quote(file.filePath)
 		newFileDesc += END_LINE
 		for simFile in file.similarFiles:
 			simFileDets = simFile.otherFileDets
-			newFileDesc += "  [similar] " + simFileDets.filePath
+			newFileDesc += "  [similar] " + quote(simFileDets.filePath)
 			if not simFile.areDatesSimilar:
 				newFileDesc += " [dates differ!]"
 			newFileDesc += END_LINE
@@ -140,6 +141,9 @@ def reportResults(srcFiles, startTime):
 	printOut("  note: from testing: the name with the space IS rotated - so you want to keep that one...", LOG_WARNINGS)
 	printOut(str(len(srcFiles)) + " total files found.", LOG_WARNINGS)
 	printOut("Time taken: " + getElapsedTime(startTime), LOG_WARNINGS)
+
+def quote(text):
+	return '"' + text.strip() + '"'
 
 def getListOfFiles(dir):
 	localFilesFound = []
@@ -172,7 +176,10 @@ def getListOfFiles(dir):
 
 def isFileOk(filePath):
 	fileName = getFileName(filePath)
-	return fileName not in FILES_TO_SKIP
+	firstChar = fileName[0]
+	#Skip filenames starting with P or D since they CAN actually be different files with same name!
+	#Also skip some known files like Picasa ini files.
+	return firstChar not in FILES_TO_SKIP_BY_FIRST_CHAR and fileName not in FILES_TO_SKIP
 
 def isDirOk(filePath):
 	fileName = getFileName(filePath)
