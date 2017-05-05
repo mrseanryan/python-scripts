@@ -1,0 +1,16 @@
+============
+Running tasks
+Building
+Compilation
+Running unit tests
+Test run result
+Discovering Tests ... 
+Executing Tests ... 
+Passed
+Failed
+Total tests
+Test Run
+SUMMARY
+Visited
+==== Alternative Results
+Alternative

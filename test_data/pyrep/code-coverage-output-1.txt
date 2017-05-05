@@ -1,0 +1,91 @@
+C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents
+##vso[task.logissue type=warning;] building DPT2.Comms.Admin.Interfaces
+===============================
+Running tasks against DPT2.Comms.Admin.Interfaces
+dotnet restore
+log  : Restoring packages for C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Admin.Interfaces\DPT2.Comms.Admin.Interfaces\project.json...
+log  : Lock file has not changed. Skipping lock file write. Path: C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Admin.Interfaces\DPT2.Comms.Admin.Interfaces\project.lock.json
+log  : C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Admin.Interfaces\DPT2.Comms.Admin.Interfaces\project.json
+log  : Restore completed in 1004ms.
+Building the component DPT2.Comms.Admin.Interfaces
+Project DPT2.Comms.Admin.Interfaces (.NETCoreApp,Version=v1.0) was previously compiled. Skipping compilation.
+##vso[task.logissue type=warning;] building DPT2.Comms.Ds.Core
+===============================
+Running tasks against DPT2.Comms.Ds.Core
+dotnet restore
+log  : Restoring packages for C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Ds.Core\DPT2.Comms.Ds.Core.Test\project.json...
+log  : Restoring packages for C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Ds.Core\DPT2.Comms.Ds.Core\project.json...
+log  : Lock file has not changed. Skipping lock file write. Path: C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Ds.Core\DPT2.Comms.Ds.Core\project.lock.json
+log  : C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Ds.Core\DPT2.Comms.Ds.Core\project.json
+log  : Restore completed in 2251ms.
+log  : Lock file has not changed. Skipping lock file write. Path: C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Ds.Core\DPT2.Comms.Ds.Core.Test\project.lock.json
+log  : C:\TfsVso\Dpt2Pds2\DPT2.ServerComponents\DPT2.Comms.Ds.Core\DPT2.Comms.Ds.Core.Test\project.json
+log  : Restore completed in 2364ms.
+Building the component DPT2.Comms.Ds.Core
+Project DPT2.Comms.Ds.Core (.NETCoreApp,Version=v1.0) will be compiled because inputs were modified
+Compiling DPT2.Comms.Ds.Core for .NETCoreApp,Version=v1.0
+
+Compilation succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time elapsed 00:00:01.9415698
+ 
+
+Project DPT2.Comms.Ds.Core.Test (.NETCoreApp,Version=v1.0) will be compiled because dependencies changed
+Compiling DPT2.Comms.Ds.Core.Test for .NETCoreApp,Version=v1.0
+
+Compilation succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time elapsed 00:00:01.2801981
+ 
+
+Running unit tests for DPT2.Comms.Ds.Core.Test
+Test run result: Executing: c:\program files\dotnet\dotnet.exe
+Project DPT2.Comms.Ds.Core (.NETCoreApp,Version=v1.0) will be compiled because inputs were modified
+Compiling DPT2.Comms.Ds.Core for .NETCoreApp,Version=v1.0
+
+Compilation succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time elapsed 00:00:04.0829362
+Project DPT2.Comms.Ds.Core.Test (.NETCoreApp,Version=v1.0) will be compiled because dependencies changed
+Compiling DPT2.Comms.Ds.Core.Test for .NETCoreApp,Version=v1.0
+
+Compilation succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time elapsed 00:00:01.9295462
+ 
+
+Discovering Tests ... 
+Executing Tests ... 
+Passed   TestMockDifferentialSyncerCreation
+Passed   TestMockWebSocketHandlerCreation
+Passed   TestFileNameEscaperRelativePath
+Passed   TestFileNameEscaperAbsolutePath
+Passed   TestFileNameEscaperFileUrl
+Passed   TestFileNameEscaperFileUrl2
+Passed   TestFileNameEscaperNetworkShare
+Passed   TestFileNameEscaperGoodFilename
+Passed   TestFileNameEscaperGoodFilename2
+============ Test Run Summary ============
+Total tests: 9. Passed: 9. Failed: 0. Skipped: 0
+Test Run Successful.
+SUMMARY: Total: 1 targets, Passed: 1, Failed: 0.
+Committing...
+Visited Classes 8 of 60 (13.33)
+Visited Methods 16 of 213 (7.51)
+Visited Points 108 of 1748 (6.18)
+Visited Branches 29 of 546 (5.31)
+
+==== Alternative Results (includes all methods including those without corresponding source) ====
+Alternative Visited Classes 8 of 62 (12.9)
+Alternative Visited Methods 19 of 297 (6.4)
+
+0
+0
