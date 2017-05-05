@@ -114,23 +114,23 @@ extensions_list = extensions.split(';')
 
 ###############################################################
 #print out summary of the configuration, and prompt user to continue:
-print ("Configuration:")
-print ("--------------")
+print "Configuration:"
+print "--------------"
 
-print ("sourceDirPath: " + sourceDirPath + "\n")
-print ("extensions: ")
+print "sourceDirPath: " + sourceDirPath + "\n"
+print "extensions: "
 for ext in extensions_list:
-    print (" " + ext)
+    print " " + ext
 
-print ("extensions to ignore: ")
+print "extensions to ignore: "
 for ext in extensions_to_ignore_list:
-    print (" " + ext)
+    print " " + ext
 
-print ("directories to ignore: ")
-for dir in directories_to_ignore_list:
-    print (" " + dir)
+print "directories to ignore: "
+for dire in directories_to_ignore_list:
+    print " " + dire
 
-print ("")
+print ""
 
 if logVerbosity == LOG_WARNINGS:
     print ("Output will show warnings only\n")
@@ -162,12 +162,12 @@ numWarnings = 0
 #this function prints out, according to user's options for verbosity
 def printOut(txt, verb = LOG_VERBOSE, bNewLine = True):
     global logVerbosity
-    if(bNewLine):
+    if bNewLine:
         txt = txt + "\n"
     if verb == LOG_WARNINGS_ONLY:
         if logVerbosity == LOG_WARNINGS: #special case :-(
             sys.stdout.write(txt)
-    elif(logVerbosity >= verb):
+    elif logVerbosity >= verb:
         sys.stdout.write(txt)
 
 ###############################################################
@@ -179,10 +179,10 @@ def IsFileExtensionOk(filename):
     isExtensionOk = False
     for ext in extensions_list:
         ext = ext.lower()
-        if(ext == '*'):
+        if ext == '*':
             isExtensionOk = True
             break
-        if (filename.lower().endswith("." + ext)):
+        if filename.lower().endswith("." + ext):
             isExtensionOk = True
             break
 
@@ -191,7 +191,7 @@ def IsFileExtensionOk(filename):
 
     for ext in extensions_to_ignore_list:
         ext = ext.lower()
-        if (filename.lower().endswith("." + ext)):
+        if filename.lower().endswith("." + ext):
             return False
 
     return isExtensionOk
@@ -201,7 +201,7 @@ def IsFileExtensionOk(filename):
 def IsFileSizeOk(filePath):
     global sizeInBytes
     fileSizeInBytes = os.path.getsize(filePath)
-    if (sizeInBytes == fileSizeInBytes):
+    if sizeInBytes == fileSizeInBytes:
         return True
     else:
         return False
@@ -221,15 +221,13 @@ def GetTodoTokens():
 #CountTodosInFile - does the file at given path, contain some TODO comments
 def CountTodosInFile(filename):
     file = open(filename, 'r')
-    token  = "TODO"
+    token = "TODO"
     countOfTodosInFile = 0
     todoTokens = GetTodoTokens()
     lineNum = 0
     for line in file:
         lineNum = lineNum + 1
-        #sys.stdout.write(line) #xxx
         for todoToken in todoTokens:
-            #sys.stdout.write(todoToken) #xxx
             todoToken = todoToken.lower()
             line = line.lower()
             if todoToken in line:
@@ -241,21 +239,24 @@ def CountTodosInFile(filename):
 
 def WriteOutTodo(filename, lineNum, todoText):
     line = filename + ", " + str(lineNum) + ", " + todoText
-    printOut(line, LOG_WARNINGS)
+    printOut(line, LOG_WARNINGS, False)
  
 def IsDirectoryOk(dirpath):
     global directories_to_ignore_list
-    dirSeparator = '\\' #TODO add support for Unix
+    #TODO add support for Unix:
+    dirSeparator = '\\'
     dirname = dirpath.split(dirSeparator)
     dirname = dirname[len(dirname) - 1]
-    if(dirname in directories_to_ignore_list):
+    if dirname in directories_to_ignore_list:
             return False
     return True
 
 ###############################################################
-#search_files - recursively search the given directory, and populate the map with files that match our list of extensions
+# search_files - recursively search the given directory
+# and populate the map with files that match our list of extensions
 def search_files_by_ext(dir):
     todosFoundLocal = 0
+    filesWithTodosLocal = 0
     basedir = dir
     subdirlist = []
     
@@ -276,25 +277,29 @@ def search_files_by_ext(dir):
                 countOfTodosInFile = CountTodosInFile(filePath)
                 if countOfTodosInFile > 0:
                     todosFoundLocal = todosFoundLocal + countOfTodosInFile
-                    printOut ("File found: " + filePath + " with " + str(countOfTodosInFile) + " TODOs", LOG_VERBOSE)
+                    filesWithTodosLocal = filesWithTodosLocal + 1
+                    printOut("File found: " + filePath + " with " + str(countOfTodosInFile) + 
+                        " TODOs", LOG_VERBOSE)
         else:
             subdirlist.append(filePath)
     for subdir in subdirlist:
         if IsDirectoryOk(subdir):
             try:
-                todosFoundLocal += search_files_by_ext(subdir)
+                (todosFoundOther, filesWithTodosOther) = search_files_by_ext(subdir)
+                todosFoundLocal += todosFoundOther
+                filesWithTodosLocal += filesWithTodosOther
             except WindowsError:
-                printOut("Error occurred accessing directory " + subdir);
-    return todosFoundLocal
+                printOut("Error occurred accessing directory " + subdir)
+    return (todosFoundLocal, filesWithTodosLocal)
 
 ###############################################################
 #search for source files, that match the extensions given by user
 printOut ("Summary:" + "\n" + "-----------------")
 totalTodosFound = 0
-totalTodosFound = search_files_by_ext(sourceDirPath)
+(totalTodosFound, totalFilesWithTodos) = search_files_by_ext(sourceDirPath)
 
 ###############################################################
 #print summary of results        
 print ("")
-print ("Found " + str(totalTodosFound) + " TODOs in comments.")
+print ("Found " + str(totalTodosFound) + " TODOs in comments in " + str(totalFilesWithTodos) + " files.")
 print (str(numWarnings) + " warnings")
