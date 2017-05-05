@@ -221,12 +221,12 @@ def CountTodosInFile(filename):
         lineNum = lineNum + 1
         for todoToken in todo_tokens:
             todoToken = todoToken.lower()
-            line = line.lower()
-            if todoToken in line:
+            lineLower = line.lower()
+            if todoToken in lineLower:
                 countOfTodosInFile = countOfTodosInFile + 1
-                indexInLine = line.find(todoToken)
+                indexInLine = lineLower.find(todoToken)
                 todoText = line[indexInLine : ]
-                #xxx make optional
+                #TODO make CSV format be optional
                 WriteOutTodoCsv(filename, lineNum, todoText)
     return countOfTodosInFile
 
@@ -238,11 +238,14 @@ def WriteOutTodo(filename, lineNum, todoText):
     line = filename + ", " + str(lineNum) + ", " + todoText
     printOut(line, LOG_WARNINGS, False)
 
+def add_quotes(text):
+    return "\"" + text + "\""
+
 def WriteOutTodoCsvHeader():
     WriteOutTodoCsv("File Path", "Line Number", "TODO Text")
 
 def WriteOutTodoCsv(filename, lineNum, todoText):
-    line = "\"" + get_file_extension(filename) + "\"" + ", " + "\"" + filename + "\"" + ", " + "\"" + str(lineNum) + "\"" + ", " + "\"" + todoText.strip() + "\""
+    line = get_file_extension(filename) + ", " + filename + ", " + str(lineNum) + ", " + add_quotes(todoText.replace(",", " - ").strip())
     printOut(line, LOG_WARNINGS, True)
 
 def IsDirectoryOk(dirpath):
