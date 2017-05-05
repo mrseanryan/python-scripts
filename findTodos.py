@@ -7,7 +7,7 @@
  This is useful if you are working on a large codebase, and need an overview of the TODOs.
 
 Dependencies: Python 2.7 (3)
- 
+
 Usage: findTodos.py <source directory> <semi-colon separated list of extensions> [options]
 
 The options are:
@@ -16,13 +16,13 @@ The options are:
 [-s skip directores]
 [-w show Warnings only]
 
-Example: search for .NET source code files, in the c:\\sourcecode directory and all child directories, that do not have a copyright notice:
+Example: search for .NET source code files, in the c:\\sourcecode directory and all child directories, that have TODOs in comments:
 findTodos.py c:\\sourcecode cs;vbs
 
-Example: search ALL files, in the c:\\sourcecode directory and all child directories, that do not have a copyright notice:
+Example: search ALL files, in the c:\\sourcecode directory and all child directories, that have TODOs in comments:
 findTodos.py c:\\sourcecode *
 
-Example: search for .NET source code files, in the c:\\sourcecode directory and all child directories, that do not have a copyright notice.
+Example: search for .NET source code files, in the c:\\sourcecode directory and all child directories, that have TODOs in comments.
 Ignore files with extension designer.cs or Test.cs (case in-sensitive).
 Skip directories named obj or debug.
 findTodos.py c:\\sourcecode cs;vbs -idesigner.cs;Test.cs -sobj;debug
@@ -47,7 +47,7 @@ from os import pathsep
 ###############################################################
 # Define some defaults:
 sourceDirPath = '' #location to search for files
-sizeInBytes = 0
+size_in_bytes = 0
 
 #LOG_WARNINGS_ONLY - this means, only output if the verbosity is LOG_WARNINGS
 LOG_WARNINGS, LOG_WARNINGS_ONLY, LOG_VERBOSE = range(3)
@@ -133,27 +133,27 @@ for dire in directories_to_ignore_list:
 print ""
 
 if logVerbosity == LOG_WARNINGS:
-    print ("Output will show warnings only\n")
+    print "Output will show warnings only\n"
 elif logVerbosity == LOG_VERBOSE:
-    print ("Output is verbose\n")
+    print "Output is verbose\n"
 else:
-    print ("Invalid verbosity level: " + logVerbosity)
+    print "Invalid verbosity level: " + logVerbosity
     sys.exit(1)
 
-print ("We will recursively search for all matching files, that have TODO comments.")
+print "We will recursively search for all matching files, that have TODO comments."
 
-print ("")
+print ""
 
 if ask_ok("Do you wish to continue ? (Y/N)"):
     #do nothing
-    print ("ok")
+    print "ok"
 else:
-    print ("Exiting")
+    print "Exiting"
     sys.exit()
-    
-print ("")
 
-print ("Searching for files ...\n")
+print ""
+
+print "Searching for files ...\n"
 
 numWarnings = 0
 
@@ -195,27 +195,17 @@ def IsFileExtensionOk(filename):
             return False
 
     return isExtensionOk
-    
-###############################################################
-#IsFileSizeOk() - does this file have the same size given by user
-def IsFileSizeOk(filePath):
-    global sizeInBytes
-    fileSizeInBytes = os.path.getsize(filePath)
-    if sizeInBytes == fileSizeInBytes:
-        return True
-    else:
-        return False
 
 ###############################################################
-#GetTodoTokens - get list of TODO tokens to search for
-def GetTodoTokens():
-    todoTokens = []
-    commentTokens = ("#", "//", "/*")
-    for commentToken in commentTokens:
-        todoTokens.append(commentToken + "TODO")
-        todoTokens.append(commentToken + " TODO")
-        todoTokens.append(commentToken + "\tTODO")
-    return todoTokens
+#get_todo_tokens - get list of TODO tokens to search for
+def get_todo_tokens():
+    todo_tokens = []
+    comment_tokens = ("#", "//", "/*")
+    for comment_token in comment_tokens:
+        todo_tokens.append(comment_token + "TODO")
+        todo_tokens.append(comment_token + " TODO")
+        todo_tokens.append(comment_token + "\tTODO")
+    return todo_tokens
 
 ###############################################################
 #CountTodosInFile - does the file at given path, contain some TODO comments
@@ -223,11 +213,11 @@ def CountTodosInFile(filename):
     file = open(filename, 'r')
     token = "TODO"
     countOfTodosInFile = 0
-    todoTokens = GetTodoTokens()
+    todo_tokens = get_todo_tokens()
     lineNum = 0
     for line in file:
         lineNum = lineNum + 1
-        for todoToken in todoTokens:
+        for todoToken in todo_tokens:
             todoToken = todoToken.lower()
             line = line.lower()
             if todoToken in line:
@@ -240,7 +230,7 @@ def CountTodosInFile(filename):
 def WriteOutTodo(filename, lineNum, todoText):
     line = filename + ", " + str(lineNum) + ", " + todoText
     printOut(line, LOG_WARNINGS, False)
- 
+
 def IsDirectoryOk(dirpath):
     global directories_to_ignore_list
     #TODO add support for Unix:
@@ -248,7 +238,7 @@ def IsDirectoryOk(dirpath):
     dirname = dirpath.split(dirSeparator)
     dirname = dirname[len(dirname) - 1]
     if dirname in directories_to_ignore_list:
-            return False
+        return False
     return True
 
 ###############################################################
@@ -259,27 +249,27 @@ def search_files_by_ext(dir):
     filesWithTodosLocal = 0
     basedir = dir
     subdirlist = []
-    
+
     printOut("Searching dir: " + dir)
 
     filesInDir = []
     try:
         filesInDir = os.listdir(dir)
     except WindowsError:
-        printOut("Error occurred accessing directory " + dir);
+        printOut("Error occurred accessing directory " + dir)
         return 0
-    
+
     totolTodosFound = 0
     for filename in filesInDir:
-        filePath = os.path.join(basedir,filename)
+        filePath = os.path.join(basedir, filename)
         if os.path.isfile(filePath):
             if IsFileExtensionOk(filename):
                 countOfTodosInFile = CountTodosInFile(filePath)
                 if countOfTodosInFile > 0:
                     todosFoundLocal = todosFoundLocal + countOfTodosInFile
                     filesWithTodosLocal = filesWithTodosLocal + 1
-                    printOut("File found: " + filePath + " with " + str(countOfTodosInFile) + 
-                        " TODOs", LOG_VERBOSE)
+                    printOut("File found: " + filePath + " with " + str(countOfTodosInFile) +
+                             " TODOs", LOG_VERBOSE)
         else:
             subdirlist.append(filePath)
     for subdir in subdirlist:
@@ -294,12 +284,13 @@ def search_files_by_ext(dir):
 
 ###############################################################
 #search for source files, that match the extensions given by user
-printOut ("Summary:" + "\n" + "-----------------")
+printOut("Summary:" + "\n" + "-----------------")
 totalTodosFound = 0
 (totalTodosFound, totalFilesWithTodos) = search_files_by_ext(sourceDirPath)
 
 ###############################################################
-#print summary of results        
-print ("")
-print ("Found " + str(totalTodosFound) + " TODOs in comments in " + str(totalFilesWithTodos) + " files.")
-print (str(numWarnings) + " warnings")
+#print summary of results
+print ""
+print("Found " + str(totalTodosFound) + " TODOs in comments in " +
+      str(totalFilesWithTodos) + " files.")
+print str(numWarnings) + " warnings"
