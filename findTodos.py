@@ -200,7 +200,9 @@ def IsFileExtensionOk(filename):
 #get_todo_tokens - get list of TODO tokens to search for
 def get_todo_tokens():
     todo_tokens = []
-    comment_tokens = ("#", "//", "/*")
+    #note - <!-- is for HTML
+    #note - @* is for Razor
+    comment_tokens = ("#", "//", "/*", "<!--", "@*")
     for comment_token in comment_tokens:
         todo_tokens.append(comment_token + "TODO")
         todo_tokens.append(comment_token + " TODO")
@@ -224,12 +226,24 @@ def CountTodosInFile(filename):
                 countOfTodosInFile = countOfTodosInFile + 1
                 indexInLine = line.find(todoToken)
                 todoText = line[indexInLine : ]
-                WriteOutTodo(filename, lineNum, todoText)
+                #xxx make optional
+                WriteOutTodoCsv(filename, lineNum, todoText)
     return countOfTodosInFile
+
+def get_file_extension(filename):
+    parts = filename.split(".")
+    return parts[len(parts) - 1]
 
 def WriteOutTodo(filename, lineNum, todoText):
     line = filename + ", " + str(lineNum) + ", " + todoText
     printOut(line, LOG_WARNINGS, False)
+
+def WriteOutTodoCsvHeader():
+    WriteOutTodoCsv("File Path", "Line Number", "TODO Text")
+
+def WriteOutTodoCsv(filename, lineNum, todoText):
+    line = "\"" + get_file_extension(filename) + "\"" + ", " + "\"" + filename + "\"" + ", " + "\"" + str(lineNum) + "\"" + ", " + "\"" + todoText.strip() + "\""
+    printOut(line, LOG_WARNINGS, True)
 
 def IsDirectoryOk(dirpath):
     global directories_to_ignore_list
@@ -285,6 +299,8 @@ def search_files_by_ext(dir):
 ###############################################################
 #search for source files, that match the extensions given by user
 printOut("Summary:" + "\n" + "-----------------")
+
+WriteOutTodoCsvHeader()
 totalTodosFound = 0
 (totalTodosFound, totalFilesWithTodos) = search_files_by_ext(sourceDirPath)
 
