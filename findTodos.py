@@ -211,8 +211,8 @@ def get_todo_tokens():
 
 ###############################################################
 #CountTodosInFile - does the file at given path, contain some TODO comments
-def CountTodosInFile(filename):
-    file = open(filename, 'r')
+def CountTodosInFile(filepath):
+    file = open(filepath, 'r')
     token = "TODO"
     countOfTodosInFile = 0
     todo_tokens = get_todo_tokens()
@@ -227,11 +227,15 @@ def CountTodosInFile(filename):
                 indexInLine = lineLower.find(todoToken)
                 todoText = line[indexInLine : ]
                 #TODO make CSV format be optional
-                WriteOutTodoCsv(filename, lineNum, todoText)
+                WriteOutTodoCsv(filepath, filepath, lineNum, todoText)
     return countOfTodosInFile
 
-def get_file_extension(filename):
-    parts = filename.split(".")
+def get_file_extension(filepath):
+    parts = filepath.split(".")
+    return parts[len(parts) - 1]
+
+def get_file_name(filepath):
+    parts = filepath.split("\\")
     return parts[len(parts) - 1]
 
 def WriteOutTodo(filename, lineNum, todoText):
@@ -242,10 +246,10 @@ def add_quotes(text):
     return "\"" + text + "\""
 
 def WriteOutTodoCsvHeader():
-    WriteOutTodoCsv("File Path", "Line Number", "TODO Text")
+    WriteOutTodoCsv("File Path", "File Name", "Line Number", "TODO Text")
 
-def WriteOutTodoCsv(filename, lineNum, todoText):
-    line = get_file_extension(filename) + ", " + filename + ", " + str(lineNum) + ", " + add_quotes(todoText.replace(",", " - ").strip())
+def WriteOutTodoCsv(filepath1, filepath2, lineNum, todoText):
+    line = get_file_extension(filepath1) + ", " + get_file_name(filepath2) + ", " + filepath2 + ", " + str(lineNum) + ", " + add_quotes(todoText.replace(",", " - ").strip())
     printOut(line, LOG_WARNINGS, True)
 
 def IsDirectoryOk(dirpath):
