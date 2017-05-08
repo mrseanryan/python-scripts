@@ -11,9 +11,10 @@ Dependencies: Python 2.7 (3)
 Usage: findTodos.py <source directory> <semi-colon separated list of extensions> [options]
 
 The options are:
-[-h help]
-[-i ignore file extensions]
-[-s skip directores]
+[-h Help]
+[-i Ignore file extensions]
+[-p Parse path part (0 indexed) as a separate column]
+[-s Skip directores]
 [-w show Warnings only]
 
 Example: search for .NET source code files, in the c:\\sourcecode directory and all child directories, that have TODOs in comments:
@@ -85,9 +86,11 @@ datetime.datetime.strptime('01 12 2006 12:32', dateTimeFormat)
     
 ###############################################################
 #optparse - parse the args
-parser = OptionParser(usage='%prog <source directory> <size in bytes> [options]')
+parser = OptionParser(usage='%prog <source directory> <semi-colon separated list of extensions> [options]')
 parser.add_option('-i', '--ignore', dest='ignoreExtensions', default="",
                    help='ignore file extensions')
+parser.add_option('-p', '--parse', dest='parse_paths_part', default=-1, type="int",
+                   help='Parse path part (0 indexed) as a separate column')
 parser.add_option('-s', '--skip', dest='skipDirectories', default="",
                    help='skip directories')
 parser.add_option('-w', '--warnings', dest='warnings', action='store_const',
@@ -106,6 +109,8 @@ sourceDirPath = args[0]
 extensions = args[1]
 extensions_to_ignore_list = options.ignoreExtensions.split(';')
 directories_to_ignore_list = options.skipDirectories.split(';')
+is_parsing_paths = options.parse_paths_part >= 0
+parse_paths_part = options.parse_paths_part
 yesAllPrompts = options.yes_all
 
 ###############################################################
@@ -227,7 +232,7 @@ def CountTodosInFile(filepath):
                 indexInLine = lineLower.find(todoToken)
                 todoText = line[indexInLine : ]
                 #TODO make CSV format be optional
-                WriteOutTodoCsv(filepath, filepath, lineNum, todoText)
+                WriteOutTodoCsv(filepath, lineNum, todoText)
     return countOfTodosInFile
 
 def get_file_extension(filepath):
@@ -246,11 +251,22 @@ def add_quotes(text):
     return "\"" + text + "\""
 
 def WriteOutTodoCsvHeader():
-    WriteOutTodoCsv("File Path", "File Name", "Line Number", "TODO Text")
-
-def WriteOutTodoCsv(filepath1, filepath2, lineNum, todoText):
-    line = get_file_extension(filepath1) + ", " + get_file_name(filepath2) + ", " + filepath2 + ", " + str(lineNum) + ", " + add_quotes(todoText.replace(",", " - ").strip())
+    line = "File Type, File Name, File Path, Line Number, TODO Text"
+    global is_parsing_paths
+    if is_parsing_paths:
+        line = "File Type, File Name, Project, File Path, Line Number, TODO Text"
     printOut(line, LOG_WARNINGS, True)
+
+def WriteOutTodoCsv(filepath, lineNum, todoText):
+    global is_parsing_paths
+    line = get_file_extension(filepath) + ", " + get_file_name(filepath) + ", "
+    if is_parsing_paths:
+        line += get_parsed_path(filepath) + ", "
+    line += filepath + ", " + str(lineNum) + ", " + add_quotes(todoText.replace(",", " - ").strip())
+    printOut(line, LOG_WARNINGS, True)
+
+def get_parsed_path(filepath):
+    return filepath.split("\\")[parse_paths_part]
 
 def IsDirectoryOk(dirpath):
     global directories_to_ignore_list
