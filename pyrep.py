@@ -93,8 +93,8 @@ if(len(args) != 2):
 	usage()
 	sys.exit(2)
 logVerbosity = options.warnings
-pathToInFile = args[0]
-pathToStartOfLinesToKeepFile = args[1]
+path_to_in_file = args[0]
+path_to_lines_to_keep = args[1]
 yesAllPrompts = options.yes_all
 
 ###############################################################
@@ -102,41 +102,41 @@ yesAllPrompts = options.yes_all
 print ("Configuration:")
 print ("--------------")
 
-print ("pathToInFile: " + pathToInFile + "\n")
-print ("pathToStartOfLinesToKeepFile: " + pathToStartOfLinesToKeepFile + "\n")
+print ("path_to_in_file: " + path_to_in_file + "\n")
+print ("path_to_lines_to_keep: " + path_to_lines_to_keep + "\n")
 
 print ("")
 
 if logVerbosity == LOG_WARNINGS:
-	print ("Output will show warnings only\n")
+	print "Output will show warnings only\n"
 elif logVerbosity == LOG_VERBOSE:
-	print ("Output is verbose\n")
+	print "Output is verbose\n"
 else:
-	print ("Invalid verbosity level: " + logVerbosity)
+	print "Invalid verbosity level: " + logVerbosity
 	sys.exit(1)
 
-print ("")
+print ""
 
-if ask_ok("Do you wish to continue ? (Y/N)"):
+if(ask_ok("Do you wish to continue ? (Y/N)")):
 	#do nothing
-	print ("ok")
+	print "ok"
 else:
-	print ("Exiting")
+	print "Exiting"
 	sys.exit()
-	
-print ("")
+
+print ""
 
 ###############################################################
 #functions
 
-def process_lines(path_to_in_file, path_to_start_of_lines_to_keep):
+def process_lines(path_to_in_file, path_to_lines_to_keep):
     in_file = open(path_to_in_file, 'r')
     for line in in_file:
         line_lower = line.lower().strip()
-        start_lines_file = open(path_to_start_of_lines_to_keep, 'r')
+        lines_to_keep_file = open(path_to_lines_to_keep, 'r')
         line_is_ok = False
-        for start_line in start_lines_file:
-            if line_lower.startswith(start_line.strip().lower()):
+        for keep_line in lines_to_keep_file:
+            if line_lower.find(keep_line.strip().lower()) >= 0:
                 line_is_ok = True
                 break
         if line_is_ok:
@@ -148,6 +148,6 @@ def _remove_end_line(line):
 ###############################################################
 #main
 
-process_lines(pathToInFile, pathToStartOfLinesToKeepFile)
+process_lines(path_to_in_file, path_to_lines_to_keep)
 
 print ('[done]')
