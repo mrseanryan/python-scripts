@@ -132,14 +132,17 @@ def filetype(name):
 #                    ### Powershell ###
                      "ps1" : "Powershell",
                      ### Web ###
-                     "css" : "css",
-                     "js" : "javascript",
-                     "json" : "json",
+                     "css" : "CSS",
+                     "sass": "SASS",
+                     "scss": "SCSS",
+                     "js" : "JavaScript",
+                     "json" : "JSON",
                      "asax" : "ASP.NET handler",
                      "ashx" : "ASP.NET handler",
                      "aspx" : "ASP.NET page",
                      "ascx" : "ASP.NET user control",
-                     "cshtml" : "MVC View Razor"
+                     "cshtml" : "MVC View Razor",
+                     "ts": "TypeScript"
                      }
   
   
