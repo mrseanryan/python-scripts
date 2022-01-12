@@ -2,9 +2,9 @@
 """
 move-non-selected-images.py
 
-Moves any image files that are not named like x.y.extension.
+Moves any image file-sets that are not named like x.y.jpg.
 
-The files are moved to a subdirectory 'not-selected'.
+The files (JPEG and any matching raw files) are moved to a subdirectory 'not-selected'.
 
 USAGE: move-non-selected-images.py <path to directory>
 """
