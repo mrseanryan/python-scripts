@@ -9,7 +9,6 @@ The files (JPEG and any matching raw files) are moved to a subdirectory 'not-sel
 USAGE: move-non-selected-images.py <path to directory>
 """
 from optparse import OptionParser
-from os import walk
 import os
 from pathlib import Path
 import sys
