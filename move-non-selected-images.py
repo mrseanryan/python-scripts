@@ -64,10 +64,11 @@ def move_files(dir_path):
 
     for filename in filenames:
         move_file(filename, dir_path)
-        raw_file_sony = Path(filename).stem + '.ARW'
-        move_file(raw_file_sony, dir_path)
-        raw_file = Path(filename).stem + '.RAW'
-        move_file(raw_file, dir_path)
+        # Sony, RAW, Panasonic
+        raw_file_extensions = ['.ARW', '.RAW', '.RW2']
+        for raw_ext in raw_file_extensions:
+            raw_file_path = Path(filename).stem + raw_ext
+            move_file(raw_file_path, dir_path)
     print(f"{len(filenames)} file sets found (JPG + raw file(s))")
 
 
