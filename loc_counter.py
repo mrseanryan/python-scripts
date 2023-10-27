@@ -70,7 +70,7 @@ all of them.
 The -p or --pretty option allows the user to select HTML or LaTeX
 table output format instead of plain text.
 
-what.py -e HTML -e DoxyFiles
+loc_counter.py -e HTML -e DoxyFiles
 
 The program automatically ignores any file in a CVS diretory.
 """
@@ -92,6 +92,8 @@ def filetype(name):
                      "pyl" : "Python",
                      "el" : "Emacs Lisp",
                      "elc" : "Emacs Lisp",
+                     "scala" : "Scala",
+                     "rs" : "Rust",
 #                    ### C++ ###
                      "h" : "C or C++ Header",
                      "hpp" : "C or C++ Header",
@@ -144,10 +146,9 @@ def filetype(name):
                      "cshtml" : "MVC View Razor",
                      "ts": "TypeScript"
                      }
-  
-  
-    file_name_parts_to_skip = [ "ai.0.", "bootstrap.", "jquery.", "jquery-", "modernizr", ".min.js",  ".min.css", "\\Lib\\", "\\External\\", "ASPxScriptIntelliSense.js", "jquery", "\\packages\\", "\\node_modules\\", "Silverlight.js", "\\bower_components\\", "\\tmp\\", "\\temp\\" ]
-  
+
+    file_name_parts_to_skip = [ "ai.0.", "bootstrap.", "jquery.", "jquery-", "modernizr", ".min.js",  ".min.css", "\\Lib\\", "\\External\\", "ASPxScriptIntelliSense.js", "jquery", "\\packages\\", "\\node_modules\\", "Silverlight.js", "\\bower_components\\", "\\tmp\\", "\\temp\\", ".git" ]
+
     (root, extension) = os.path.splitext(name)
 
     # Special case the search for Makefiles as these are important but
@@ -164,7 +165,7 @@ def filetype(name):
     for exclude in file_name_parts_to_skip:
         if exclude.lower() in name.lower():
             return "Excluded"
-    
+
     # According to the rules if we have an extension then it ALWAYS has
     # a . at the beginning.  Strip that .
     extension = extension[1:len(extension)]
@@ -221,6 +222,7 @@ def main():
     exclude_list = exclude_list_default + options.exclude_dir
     language = options.language
     pretty = options.pretty
+    extensions_to_always_skip = [".png", ".gif", ".jpg", ".jpeg", ".bmp"]
 
     for root, dirs, files in os.walk("."):
         if 'CVS' in dirs:
@@ -236,7 +238,7 @@ def main():
                 if dir.lower() in dirsLower:
                     i = dirsLower.index(dir.lower())
                     if(options.verbose):
-                        print "excluding: " + dir.lower() + " at " + str(i)
+                        print("excluding: " + dir.lower() + " at " + str(i))
                     dirsLower.remove(dirsLower[i])
                     dirs.remove(dirs[i])
             #print "dirs after exclude: " + ",".join(dirs)
@@ -247,8 +249,13 @@ def main():
                 continue
             type = filetype(fullname)
 
+            # Avoid trying to read binary files
+            (root2, extension2) = os.path.splitext(name)
+            if extension2.lower() in extensions_to_always_skip:
+                continue
+
             if options.verbose:
-                print fullname
+                print(fullname)
             
             if (language and (type != language)):
                 continue
@@ -285,14 +292,14 @@ def main():
             
     # Now do our fancy printing
     if (pretty == "HTML"):
-        print "<table><tr><td>Type</td><td>Number</td><td>Lines</td></tr>"
+        print("<table><tr><td>Type</td><td>Number</td><td>Lines</td></tr>")
     elif (pretty == "LaTeX"):
-        print "\\begin{tabular}{|l|l|c|}\n\\hline\nType & Number & Lines\\\\\n\\hline"
+        print("\\begin{tabular}{|l|l|c|}\n\\hline\nType & Number & Lines\\\\\n\\hline")
     else:
-        print "Type\t\tFiles\tLines"
+        print("Type\t\tFiles\tLines")
 
     types = file_map.keys()
-    types.sort()
+    types = sorted(types)
 
     total_files = 0
     total_lines = 0
@@ -304,74 +311,74 @@ def main():
         total_lines += size_map[key]
 
         if (pretty == "HTML"):
-            print "<tr><td>%s</td><td>%d</td><td>%d</td></tr>" % \
-                  (key, file_map[key], size_map[key])
+            print("<tr><td>%s</td><td>%d</td><td>%d</td></tr>" % \
+                  (key, file_map[key], size_map[key]))
         elif (pretty == "LaTeX"):
-            print "%s & %d & %d\\\\" % (key, file_map[key], size_map[key])
+            print("%s & %d & %d\\\\" % (key, file_map[key], size_map[key]))
         else:
-            print "%s\t\t%d\t%d" % (key, file_map[key], size_map[key])
+            print("%s\t\t%d\t%d" % (key, file_map[key], size_map[key]))
         
         if (where == True):
             dirs = location_map[key].keys()
             dirs.sort()
             for dir in dirs:
                 if (pretty == "HTML"):
-                    print "<tr><td>%s</td><td>%d</td></tr>" % \
-                          (dir, location_map[key][dir])
+                    print("<tr><td>%s</td><td>%d</td></tr>" % \
+                          (dir, location_map[key][dir]))
                 elif (pretty == "LaTeX"):
-                    print "%s&%d\\\\" % (dir, location_map[key][dir])
+                    print("%s&%d\\\\" % (dir, location_map[key][dir]))
                 else:
-                    print "\t%s\t%d" % (dir, location_map[key][dir])
+                    print("\t%s\t%d" % (dir, location_map[key][dir]))
 
     if (pretty == "HTML"):
-        print "</table><br>"
-        print "<table>"
-        print "<tr><td></td><td>Files</td><td>Lines</td></tr>"
-        print "<tr><td>Identified Code</td><td>%d</td><td>%d</td></tr>" % \
-              (total_files, total_lines)
+        print("</table><br>")
+        print("<table>")
+        print("<tr><td></td><td>Files</td><td>Lines</td></tr>")
+        print("<tr><td>Identified Code</td><td>%d</td><td>%d</td></tr>" % \
+              (total_files, total_lines))
     elif (pretty == "LaTeX"):
-        print "\\hline \\hline\n&Files & Lines\\\\"
-        print "Identified Code & %d & %d\\\\" % (total_files, total_lines)
+        print("\\hline \\hline\n&Files & Lines\\\\")
+        print("Identified Code & %d & %d\\\\" % (total_files, total_lines))
     else:
-        print "\n\t\tFiles\tLines"
-        print "Identified Code\t\t%d\t%d\n" % (total_files, total_lines)
+        print("\n\t\tFiles\tLines")
+        print("Identified Code\t\t%d\t%d\n" % (total_files, total_lines))
 
     if "Unknown" in file_map.keys() and "Unknown" in size_map.keys():
         if (pretty == "HTML"):
-            print "<tr><td>Unknown</td><td>%d</td><td>%d</td></tr>" % \
-                  (file_map["Unknown"], size_map["Unknown"])
+            print("<tr><td>Unknown</td><td>%d</td><td>%d</td></tr>" % \
+                  (file_map["Unknown"], size_map["Unknown"]))
         elif (pretty == "LaTeX"):
-            print "Skipped & %d & %d\\\\\n\\hline" % \
-                  (file_map["Unknown"], size_map["Unknown"])
+            print("Skipped & %d & %d\\\\\n\\hline" % \
+                  (file_map["Unknown"], size_map["Unknown"]))
         else:
-            print "Skipped\t\t%d\t%d" % \
-                (file_map["Unknown"], size_map["Unknown"])
+            print("Skipped\t\t%d\t%d" % \
+                (file_map["Unknown"], size_map["Unknown"]))
             unknownExtensions.sort()
-            print "Skipped extensions:\t\t" + ", ".join(unknownExtensions)
-            print "\n"
+            print("Skipped extensions:\t\t" + ", ".join(unknownExtensions))
+            print("\n")
         total_files += file_map["Unknown"]
         total_lines += size_map["Unknown"]
 
     if (pretty == "HTML"):
-        print "<tr><td>Total</td><td>%d</td><td>%d</td></tr>" % \
-              (total_files, total_lines)
+        print("<tr><td>Total</td><td>%d</td><td>%d</td></tr>" % \
+              (total_files, total_lines))
     elif (pretty == "LaTeX"):
-        print "Total & %d & %d\\\\\\hline" % (total_files, total_lines)        
+        print("Total & %d & %d\\\\\\hline" % (total_files, total_lines))
     else:
-        print "Total\t\t%d\t%d\n" % (total_files, total_lines)
+        print("Total\t\t%d\t%d\n" % (total_files, total_lines))
 
     if (where == True):
         if (pretty == "HTML"):
-            print "<tr><td>Number of directories</td><td>%d</td></tr>" % \
-                  dir_num
+            print("<tr><td>Number of directories</td><td>%d</td></tr>" % \
+                  dir_num)
         elif (pretty == "LaTeX"):
-            print "Number of directories & %d" % dir_num
+            print("Number of directories & %d" % dir_num)
         else:
-            print "Number of directories\t%d" % dir_num
+            print("Number of directories\t%d" % dir_num)
 
     if (pretty == "HTML"):
-        print "</table>"
+        print("</table>")
     elif (pretty == "LaTeX"):
-        print "\\end{tabular}"
+        print("\\end{tabular}")
         
 main()        
